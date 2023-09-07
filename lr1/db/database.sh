@@ -48,7 +48,8 @@ run)
 # stop db
 stop)
     shift 1;
-    docker compose down 
+    docker compose down
+    docker volume rm db-data
     ;;
 
 # show help
