@@ -45,7 +45,7 @@ CREATE TABLE
 
 CREATE TABLE
     "price_and_quantity" (
-        "id" INTEGER PRIMARY KEY NOT NULL UNIQUE,
+        "id" SERIAL PRIMARY KEY,
         "date" date NOT NULL,
         "price" BIGINT NOT NULL,
         "quantity" integer NOT NULL,
@@ -77,12 +77,12 @@ INSERT INTO "products" ("price_id", "name", "type") VALUES
 (4, 'Блок питания Deepcool PF600 (R-PF600D-HA0B-EU) 600W, APFC, 80 Plus', 'household'),
 (5, 'Посудомоечная машина Electrolux EEA12100L', 'household');
 
-INSERT INTO "price_and_quantity" ("id", "date", "price", "quantity") VALUES
-(1, '27/10/2023', 1553, 10),
-(2, '26/10/2023', 9593.78,3),
-(3, '25/10/2023', 7564.22, 7),
-(4, '24/09/2023', 154.90, 156),
-(5, '30/08/2023', 1510.30, 6);
+INSERT INTO "price_and_quantity" ("date", "price", "quantity") VALUES
+('27/10/2023', 1553, 10),
+('26/10/2023', 9593.78,3),
+('25/10/2023', 7564.22, 7),
+('24/09/2023', 154.90, 156),
+('30/08/2023', 1510.30, 6);
 
 
 INSERT INTO "customers" ("name", "type", "adress", "phone_number", "bank_details_id") VALUES
