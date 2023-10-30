@@ -16,14 +16,21 @@ CREATE TABLE
     );
 
 CREATE TABLE
-    "customers" (
+    "bank_details" (
         "id" SERIAL PRIMARY KEY,
+        "number" VARCHAR NOT NULL,
+        "bank_name" varchar NOT NULL
+    );
+
+CREATE TABLE
+    "customers" (
+        "id" uuid NOT NULL  DEFAULT (gen_random_uuid()) PRIMARY KEY,
         "name" varchar NOT NULL,
         "type" person_type NOT NULL,
         "adress" varchar NOT NULL,
         "phone_number" VARCHAR(11) UNIQUE NOT NULL,
-        "document_id" uuid UNIQUE NOT NULL DEFAULT (gen_random_uuid()),
-        "bank_details_id" integer UNIQUE NOT NULL
+        "bank_details_id" integer UNIQUE NOT NULL,
+        FOREIGN KEY ("bank_details_id") REFERENCES "bank_details" ("id") ON DELETE CASCADE
     );
 
 CREATE TABLE
@@ -37,10 +44,10 @@ CREATE TABLE
 CREATE TABLE
     "waybills" (
         "id" SERIAL PRIMARY KEY,
-        "customer_id" integer NOT NULL,
+        "customer_id" uuid NOT NULL,
         "destination" integer NOT NULL,
-        FOREIGN KEY ("customer_id") REFERENCES "customers" ("id") ON DELETE CASCADE,
-        FOREIGN KEY ("destination") REFERENCES "destinations" ("id") ON DELETE CASCADE
+        FOREIGN KEY ("customer_id") REFERENCES "customers" ("id"),
+        FOREIGN KEY ("destination") REFERENCES "destinations" ("id")
     );
 
 CREATE TABLE
@@ -49,15 +56,7 @@ CREATE TABLE
         "date" date NOT NULL,
         "price" BIGINT NOT NULL,
         "quantity" integer NOT NULL,
-        FOREIGN KEY ("id") REFERENCES "products" ("price_id") ON DELETE CASCADE
-    );
-
-CREATE TABLE
-    "bank_details" (
-        "id" integer PRIMARY KEY NOT NULL,
-        "number" VARCHAR NOT NULL,
-        "bank_name" varchar NOT NULL,
-        FOREIGN KEY ("id") REFERENCES "customers" ("bank_details_id") ON DELETE CASCADE
+        FOREIGN KEY ("id") REFERENCES "products" ("price_id")
     );
 
 CREATE TABLE
@@ -65,8 +64,8 @@ CREATE TABLE
         "id" SERIAL PRIMARY KEY,
         "product_id" integer NOT NULL,
         "waybil_id" integer NOT NULL,
-        FOREIGN KEY ("product_id") REFERENCES "products" ("id") ON DELETE CASCADE,
-        FOREIGN KEY ("waybil_id") REFERENCES "waybills" ("id") ON DELETE CASCADE
+        FOREIGN KEY ("product_id") REFERENCES "products" ("id"),
+        FOREIGN KEY ("waybil_id") REFERENCES "waybills" ("id")
     );
 
 
@@ -85,6 +84,12 @@ INSERT INTO "price_and_quantity" ("date", "price", "quantity") VALUES
 ('30/08/2023', 1510.30, 6);
 
 
+INSERT INTO "bank_details" ("number", "bank_name")
+VALUES ('1234567890', 'Bank of Example'),
+('9876543210', 'Another Bank'),
+('5555555555', 'Bank XYZ');
+
+
 INSERT INTO "customers" ("name", "type", "adress", "phone_number", "bank_details_id") VALUES
 ('Иванов Иван', 'individual', 'ул. Ленина, 123', '1234567890', 1),
 ('Владимир Мощук', 'individual', 'ул. Кунцевщина, 38', '298277252', 2),
@@ -94,16 +99,11 @@ INSERT INTO "destinations" ("name", "region", "country") VALUES
 ('Минск', 'Минск', 'Беларусь');
 
 
+
 INSERT INTO "waybills" ("customer_id", "destination") VALUES
-(1, 1),
-(2,1),
-(3,1);
-
-
-INSERT INTO "bank_details" ("id", "number", "bank_name")
-VALUES (1, '1234567890', 'Bank of Example'),
-(2, '9876543210', 'Another Bank'),
-(3, '5555555555', 'Bank XYZ');
+((SELECT customers.id FROM "customers" LIMIT 1 OFFSET 0),1),
+((SELECT customers.id FROM "customers" LIMIT 1 OFFSET 1),1),
+((SELECT customers.id FROM "customers" LIMIT 1 OFFSET 2),1);
 
 INSERT INTO "waybil_products" ("product_id", "waybil_id") VALUES
 (1, 1),
