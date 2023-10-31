@@ -21,15 +21,15 @@ CREATE TABLE "customers" (
     "name" varchar NOT NULL,
     "type" person_type NOT NULL,
     "adress" varchar NOT NULL,
-    "phone_number" VARCHAR(11) UNIQUE NOT NULL,
-    "bank_details_id" SERIAL UNIQUE
+    "phone_number" VARCHAR(11) UNIQUE NOT NULL
 );
 
 CREATE TABLE "bank_details" (
-    "id" INT PRIMARY KEY,
+    "id" SERIAL PRIMARY KEY,
+    "customer_id" uuid UNIQUE,
     "number" VARCHAR NOT NULL,
     "bank_name" varchar NOT NULL,
-    FOREIGN KEY ("id") REFERENCES "customers" ("bank_details_id") ON DELETE CASCADE
+    FOREIGN KEY ("customer_id") REFERENCES "customers" ("id") ON DELETE CASCADE
 );
 
 CREATE TABLE
@@ -88,10 +88,10 @@ INSERT INTO "customers" ("name", "type", "adress", "phone_number") VALUES
 ('Владимир Мощук', 'individual', 'ул. Кунцевщина, 38', '298277252'),
 ('ЧП Сепия', 'legal', 'ул. Притыцкого, 105 — 194', '296291276');
 
-INSERT INTO "bank_details" ("id", "number", "bank_name")
-VALUES  (1,'1234567890', 'Bank of Example'),
-        (2,'9876543210', 'Another Bank'),
-        (3,'5555555555', 'Bank XYZ');
+INSERT INTO "bank_details" ("customer_id", "number", "bank_name")
+VALUES  ((SELECT customers.id FROM "customers" LIMIT 1 OFFSET 0), '1234567890', 'Bank of Example'),
+        ((SELECT customers.id FROM "customers" LIMIT 1 OFFSET 1), '9876543210', 'Another Bank'),
+        ((SELECT customers.id FROM "customers" LIMIT 1 OFFSET 2), '5555555555', 'Bank XYZ');
 
 
 INSERT INTO "destinations" ("name", "region", "country") VALUES
