@@ -63,7 +63,7 @@ CREATE TABLE
 
 
 CREATE VIEW waybil_prices AS
-SELECT waybil_id, SUM(price) AS total_price
+SELECT waybil_id AS id, SUM(price) AS total_price
 FROM waybil_products
 GROUP BY waybil_id;
 
