@@ -1,66 +1,91 @@
 package io.github.ardonplay.pbz.services;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
-import org.springframework.beans.factory.annotation.Value;
+import lombok.extern.slf4j.Slf4j;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.function.Supplier;
 
+@Slf4j
 public abstract class AbstractHttpHandler implements HttpHandler {
-
+    protected final Map<String, Supplier<Object>> requestHandlers = new HashMap<>();
     protected int buffSize = 1000;
 
     @Override
     public void handle(HttpExchange exchange) {
-        switch (exchange.getRequestMethod()) {
-            case "GET" -> getRequest(exchange);
-            case "POST" -> postRequest(exchange);
-            case "PUT" -> putRequest(exchange);
-            case "DELETE" -> deleteRequest(exchange);
-            case "OPTIONS" -> optionsRequest(exchange);
-            case "HEAD" -> headRequest(exchange);
-            case "PATCH" -> patchRequest(exchange);
-        }
+
+        requestHandlers.put("GET", () -> getRequest(exchange));
+        requestHandlers.put("POST", () -> postRequest(exchange));
+        requestHandlers.put("PUT", () -> putRequest(exchange));
+        requestHandlers.put("DELETE", () -> deleteRequest(exchange));
+        requestHandlers.put("OPTIONS", () -> optionsRequest(exchange));
+        requestHandlers.put("HEAD", () -> headRequest(exchange));
+        requestHandlers.put("PATCH", () -> patchRequest(exchange));
+
+        Object response = requestHandlers.computeIfAbsent(exchange.getRequestMethod(), key -> MethodNotAllowedResponse::new).get();
+
+        uploadResponceEntity(exchange, response);
     }
 
-    protected void getRequest(HttpExchange exchange) {
-        methodNotAllowed(exchange);
+    protected Object getRequest(HttpExchange exchange) {
+        return new MethodNotAllowedResponse();
     }
 
-    protected void postRequest(HttpExchange exchange) {
-        methodNotAllowed(exchange);
+    protected Object postRequest(HttpExchange exchange) {
+        return new MethodNotAllowedResponse();
     }
 
-    protected void putRequest(HttpExchange exchange) {
-        methodNotAllowed(exchange);
+    protected Object putRequest(HttpExchange exchange) {
+        return new MethodNotAllowedResponse();
     }
 
-    protected void deleteRequest(HttpExchange exchange) {
-        methodNotAllowed(exchange);
+    protected Object deleteRequest(HttpExchange exchange) {
+        return new MethodNotAllowedResponse();
     }
 
-    protected void optionsRequest(HttpExchange exchange) {
-        methodNotAllowed(exchange);
+    protected Object optionsRequest(HttpExchange exchange) {
+        return new MethodNotAllowedResponse();
     }
 
-    protected void headRequest(HttpExchange exchange) {
-        methodNotAllowed(exchange);
+    protected Object headRequest(HttpExchange exchange) {
+        return new MethodNotAllowedResponse();
     }
 
-    protected void patchRequest(HttpExchange exchange) {
-        methodNotAllowed(exchange);
+    protected Object patchRequest(HttpExchange exchange) {
+        return new MethodNotAllowedResponse();
     }
 
-    private void methodNotAllowed(HttpExchange exchange) {
+    private void uploadResponceEntity(HttpExchange exchange, Object responseEntity) {
         try {
-            exchange.sendResponseHeaders(405, 0);
+            if(responseEntity == null) {
+                exchange.sendResponseHeaders(200, 0);
+            }
+            else  if(responseEntity instanceof MethodNotAllowedResponse) {
+                exchange.sendResponseHeaders(405, 0);
+            }
+            else {
+                ObjectMapper mapper = new ObjectMapper();
+                byte[] bytes = mapper.writeValueAsBytes(responseEntity);
+
+                exchange.getResponseHeaders().put("Content-Type", Collections.singletonList("application/json"));
+                exchange.sendResponseHeaders(200, bytes.length);
+
+                write(exchange.getResponseBody(), new ByteArrayInputStream(bytes), bytes.length);
+            }
             exchange.getResponseBody().close();
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            log.error(e.getMessage());
         }
     }
+
 
     protected void write(OutputStream writtable, InputStream readable, long length) throws IOException {
         long writted = 0;
