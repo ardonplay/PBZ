@@ -67,6 +67,28 @@ SELECT waybil_id AS id, SUM(price) AS total_price
 FROM waybil_products
 GROUP BY waybil_id;
 
+CREATE OR REPLACE FUNCTION find_price_by_product_id(product_id integer, start_date date, end_date date) 
+RETURNS TABLE (
+    "Название товара" varchar,
+    "Дата" date,
+    "waybil_id" integer,
+    "Общее количество" integer,
+    "Общая стоимость" bigint,
+    "Цена за единицу" numeric
+) AS $$
+BEGIN
+    RETURN QUERY
+    SELECT p.name AS "Название товара", w.date AS "Дата", wp.waybil_id, SUM(wp.quantity) AS "Общее количество", SUM(wp.price) AS "Общая стоимость", SUM(wp.price) / SUM(wp.quantity) AS "Цена за единицу"
+    FROM waybil_products wp
+    JOIN waybills w ON wp.waybil_id = w.id
+    JOIN products p ON wp.product_id = p.id
+    WHERE p.id = product_id
+    AND w.date BETWEEN start_date AND end_date
+    GROUP BY p.name, w.date, wp.waybil_id
+    ORDER BY w.date, w.date DESC;
+END;
+$$ LANGUAGE plpgsql;
+
 INSERT INTO "product_type" ("type") VALUES
 ('INDUSTRIAL'),
 ('HOUSEHOLD'),
