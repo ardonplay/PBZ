@@ -1,19 +1,14 @@
 package io.github.ardonplay.pbz.configuration;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sun.net.httpserver.HttpServer;
 import io.github.ardonplay.pbz.services.HttpController;
 import lombok.extern.slf4j.Slf4j;
-import org.hibernate.cfg.AvailableSettings;
-import org.hibernate.type.format.jackson.JacksonJsonFormatMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.autoconfigure.orm.jpa.HibernatePropertiesCustomizer;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Primary;
 import org.springframework.context.event.EventListener;
 
 import java.io.IOException;

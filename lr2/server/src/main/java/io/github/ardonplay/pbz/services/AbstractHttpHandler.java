@@ -21,48 +21,13 @@ public abstract class AbstractHttpHandler implements HttpHandler {
 
     @Override
     public void handle(HttpExchange exchange) {
-
-        requestHandlers.put("GET", () -> getRequest(exchange));
-        requestHandlers.put("POST", () -> postRequest(exchange));
-        requestHandlers.put("PUT", () -> putRequest(exchange));
-        requestHandlers.put("DELETE", () -> deleteRequest(exchange));
-        requestHandlers.put("OPTIONS", () -> optionsRequest(exchange));
-        requestHandlers.put("HEAD", () -> headRequest(exchange));
-        requestHandlers.put("PATCH", () -> patchRequest(exchange));
-
-        Object response = requestHandlers.computeIfAbsent(exchange.getRequestMethod(), key -> MethodNotAllowedResponse::new).get();
-
+        System.out.println(requestHandlers);
+        Object response = this.requestHandlers.computeIfAbsent(exchange.getRequestMethod(), key -> MethodNotAllowedResponse::new).get();
         uploadResponceEntity(exchange, response);
     }
-
-    protected Object getRequest(HttpExchange exchange) {
-        return new MethodNotAllowedResponse();
+    public void addRequestHandler(String type, Supplier<Object> func){
+       this.requestHandlers.put(type, func);
     }
-
-    protected Object postRequest(HttpExchange exchange) {
-        return new MethodNotAllowedResponse();
-    }
-
-    protected Object putRequest(HttpExchange exchange) {
-        return new MethodNotAllowedResponse();
-    }
-
-    protected Object deleteRequest(HttpExchange exchange) {
-        return new MethodNotAllowedResponse();
-    }
-
-    protected Object optionsRequest(HttpExchange exchange) {
-        return new MethodNotAllowedResponse();
-    }
-
-    protected Object headRequest(HttpExchange exchange) {
-        return new MethodNotAllowedResponse();
-    }
-
-    protected Object patchRequest(HttpExchange exchange) {
-        return new MethodNotAllowedResponse();
-    }
-
     private void uploadResponceEntity(HttpExchange exchange, Object responseEntity) {
         try {
             if(responseEntity == null) {

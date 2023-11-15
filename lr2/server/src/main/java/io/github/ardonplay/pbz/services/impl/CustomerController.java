@@ -1,9 +1,7 @@
 package io.github.ardonplay.pbz.services.impl;
 
-import com.fasterxml.jackson.annotation.JsonAutoDetect;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sun.net.httpserver.HttpExchange;
-import com.sun.net.httpserver.HttpHandler;
+import io.github.ardonplay.pbz.model.dto.CustomerDTO;
 import io.github.ardonplay.pbz.model.table.Customer;
 import io.github.ardonplay.pbz.repository.table.CustomerRepository;
 import io.github.ardonplay.pbz.services.AbstractHttpHandler;
@@ -11,10 +9,9 @@ import io.github.ardonplay.pbz.services.HttpController;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
-import java.util.Collections;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -31,22 +28,24 @@ public class CustomerController implements HttpController {
     }
 
     @Override
-    public HttpHandler getHandler() {
+    public AbstractHttpHandler getHandler() {
 
         return new AbstractHttpHandler() {
 
             @Override
             public void handle(HttpExchange exchange){
-                requestHandlers.put("TEST", () -> customRequest(exchange));
+                requestHandlers.put("GET", () -> getRequest(exchange));
                 super.handle(exchange);
             }
-            @Override
-            protected Object getRequest(HttpExchange exchange) {
-                return repository.findAll();
-            }
 
-            public Object customRequest(HttpExchange exchange){
-                return "custom request method allowed!";
+            public List<CustomerDTO> getRequest(HttpExchange exchange){
+                return repository.findAll().stream()
+                        .map(customer -> CustomerDTO.builder()
+                                .id(customer.getId())
+                                .name(customer.getName())
+                                .type(customer.getType())
+                                .build())
+                        .collect(Collectors.toList());
             }
         };
     }

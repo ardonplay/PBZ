@@ -1,7 +1,6 @@
 package io.github.ardonplay.pbz.model.table;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NonNull;
@@ -23,7 +22,6 @@ public class Waybill {
 
     @ManyToOne()
     @JoinColumn(name = "customer_id", referencedColumnName = "id")
-    @JsonManagedReference
     private Customer customer;
 
     @NonNull
