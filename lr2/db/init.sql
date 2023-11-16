@@ -29,7 +29,7 @@ CREATE TABLE "bank_details" (
     "customer_id" uuid UNIQUE,
     "number" VARCHAR NOT NULL,
     "bank_name" varchar NOT NULL,
-    FOREIGN KEY ("customer_id") REFERENCES "customers" ("id") ON DELETE CASCADE
+    FOREIGN KEY ("customer_id") REFERENCES "customers" ("id") ON DELETE CASCADE ON UPDATE CASCADE
 );
 
 CREATE TABLE
@@ -56,7 +56,7 @@ CREATE TABLE
         "product_id" integer NOT NULL,
         "waybil_id" integer NOT NULL,
         "quantity" integer NOT NULL,
-        "price" BIGINT NOT NULL,
+        "price" decimal(18,2) NOT NULL,
         FOREIGN KEY ("product_id") REFERENCES "products" ("id") ON DELETE CASCADE,
         FOREIGN KEY ("waybil_id") REFERENCES "waybills" ("id") ON DELETE CASCADE
     );
