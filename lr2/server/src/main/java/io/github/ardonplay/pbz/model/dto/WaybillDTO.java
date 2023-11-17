@@ -1,15 +1,24 @@
 package io.github.ardonplay.pbz.model.dto;
 
-import lombok.Builder;
-import lombok.Data;
+import lombok.*;
 
 import java.util.Date;
+import java.util.List;
 import java.util.UUID;
 
 @Data
-@Builder
+@RequiredArgsConstructor
+@NoArgsConstructor
+@AllArgsConstructor
 public class WaybillDTO {
-    private int id;
+    @NonNull
+    private Integer id;
+    @NonNull
     private Date date;
+    @NonNull
     private UUID customerID;
+    @NonNull
+    private DestinationDTO destination;
+
+    private List<WaybillProductDTO> waybillProducts;
 }

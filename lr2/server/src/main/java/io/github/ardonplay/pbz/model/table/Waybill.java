@@ -20,7 +20,7 @@ public class Waybill {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
 
-    @ManyToOne()
+    @ManyToOne(cascade = {CascadeType.PERSIST, CascadeType.MERGE})
     @JoinColumn(name = "customer_id", referencedColumnName = "id")
     private Customer customer;
 
@@ -28,10 +28,10 @@ public class Waybill {
     @Column(name = "date")
     private Date date;
 
-    @ManyToOne()
+    @ManyToOne(cascade = {CascadeType.PERSIST, CascadeType.MERGE})
     @JoinColumn(name = "destination", referencedColumnName = "id")
     private Destination destination;
 
-    @OneToMany(mappedBy = "waybill")
+    @OneToMany(cascade = {CascadeType.PERSIST, CascadeType.MERGE}, mappedBy = "waybill")
     private List<WaybillProduct> waybillProducts;
 }

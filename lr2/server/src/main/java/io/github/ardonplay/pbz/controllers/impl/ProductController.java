@@ -1,18 +1,17 @@
-package io.github.ardonplay.pbz.services.impl;
+package io.github.ardonplay.pbz.controllers.impl;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sun.net.httpserver.HttpExchange;
-import io.github.ardonplay.pbz.model.dto.CustomerDTO;
+import io.github.ardonplay.pbz.controllers.HttpController;
 import io.github.ardonplay.pbz.model.dto.ProductDTO;
 import io.github.ardonplay.pbz.model.table.Product;
 import io.github.ardonplay.pbz.repository.table.ProductRepository;
 import io.github.ardonplay.pbz.services.AbstractHttpHandler;
-import io.github.ardonplay.pbz.services.HttpController;
-import io.github.ardonplay.pbz.services.ResponseEntity;
+import io.github.ardonplay.pbz.model.ResponseEntity;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
-import org.springframework.stereotype.Service;
+import org.springframework.stereotype.Controller;
 
 import java.io.IOException;
 import java.util.Map;
@@ -21,7 +20,7 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Slf4j
-@Service
+@Controller
 @AllArgsConstructor
 public class ProductController implements HttpController {
 

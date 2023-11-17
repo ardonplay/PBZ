@@ -1,56 +1,131 @@
 package io.github.ardonplay.pbz.services;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
+import io.github.ardonplay.pbz.model.ResponseEntity;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Service;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
+import java.nio.ByteBuffer;
+import java.util.*;
 import java.util.function.Supplier;
 
 @Slf4j
+@Service
 public abstract class AbstractHttpHandler implements HttpHandler {
-    protected final Map<String, Supplier<Object>> requestHandlers = new HashMap<>();
+    protected final Map<String, Supplier<ResponseEntity>> requestHandlers = new HashMap<>();
     protected int buffSize = 1000;
+    private final ObjectMapper mapper;
 
+    protected AbstractHttpHandler(ObjectMapper mapper) {
+        this.mapper = mapper;
+    }
+
+    //TODO add object mapper as bean!
     @Override
     public void handle(HttpExchange exchange) {
-        System.out.println(requestHandlers);
-        Object response = this.requestHandlers.computeIfAbsent(exchange.getRequestMethod(), key -> MethodNotAllowedResponse::new).get();
+
+        addRequestHandler("GET", () -> getRequest(exchange));
+        addRequestHandler("POST", () -> postRequest(exchange));
+        addRequestHandler("HEAD", () -> headRequest(exchange));
+        addRequestHandler("OPTIONS", () -> optionsRequest(exchange));
+        addRequestHandler("PUT", () -> putRequest(exchange));
+        addRequestHandler("DELETE", () -> deleteRequest(exchange));
+        addRequestHandler("PATCH", () -> patchRequest(exchange));
+
+        ResponseEntity response;
+
+        try {
+            response = this.requestHandlers.computeIfAbsent(exchange.getRequestMethod(), key -> ResponseEntity::new).get();
+        }catch (RuntimeException e){
+            log.error(e.getLocalizedMessage());
+            response = new ResponseEntity(500);
+        }
         uploadResponceEntity(exchange, response);
     }
-    public void addRequestHandler(String type, Supplier<Object> func){
-       this.requestHandlers.put(type, func);
+
+
+    //Big ball of mud
+    protected ResponseEntity getRequest(HttpExchange exchange){
+        return new ResponseEntity();
     }
-    private void uploadResponceEntity(HttpExchange exchange, Object responseEntity) {
+
+    protected ResponseEntity postRequest(HttpExchange exchange){
+        return new ResponseEntity();
+    }
+
+    protected ResponseEntity headRequest(HttpExchange exchange){
+        return new ResponseEntity();
+    }
+
+    protected ResponseEntity patchRequest(HttpExchange exchange){
+        return new ResponseEntity();
+    }
+    protected ResponseEntity putRequest(HttpExchange exchange){
+        return new ResponseEntity();
+    }
+
+    protected ResponseEntity deleteRequest(HttpExchange exchange){
+        return new ResponseEntity();
+    }
+
+    protected ResponseEntity optionsRequest(HttpExchange exchange){
+        return new ResponseEntity();
+    }
+
+
+    protected void addRequestHandler(String type, Supplier<ResponseEntity> func) {
+        this.requestHandlers.put(type, func);
+    }
+
+    private void uploadResponceEntity(HttpExchange exchange, ResponseEntity responseEntity) {
         try {
-            if(responseEntity == null) {
-                exchange.sendResponseHeaders(200, 0);
+            if (responseEntity.getHeaders() != null) {
+                exchange.getResponseHeaders().putAll(responseEntity.getHeaders());
             }
-            else  if(responseEntity instanceof MethodNotAllowedResponse) {
-                exchange.sendResponseHeaders(405, 0);
-            }
-            else {
-                ObjectMapper mapper = new ObjectMapper();
-                byte[] bytes = mapper.writeValueAsBytes(responseEntity);
 
+            byte[] bytes = new byte[0];
+
+            if (responseEntity.getBody() != null) {
+                bytes = mapper.writeValueAsBytes(responseEntity.getBody());
                 exchange.getResponseHeaders().put("Content-Type", Collections.singletonList("application/json"));
-                exchange.sendResponseHeaders(200, bytes.length);
-
-                write(exchange.getResponseBody(), new ByteArrayInputStream(bytes), bytes.length);
             }
-            exchange.getResponseBody().close();
+
+            exchange.sendResponseHeaders(responseEntity.getStatus(), bytes.length);
+            try (OutputStream responseBody = exchange.getResponseBody()) {
+                write(responseBody, new ByteArrayInputStream(bytes), bytes.length);
+            }finally {
+                exchange.getResponseBody().close();
+            }
+        } catch (JsonProcessingException e) {
+            log.error("Error processing JSON: " + e.getMessage());
         } catch (IOException e) {
-            log.error(e.getMessage());
+            log.error("Error writing response: " + e.getMessage());
         }
     }
 
+    protected Map<String, String> getRequestParams(HttpExchange exchange) {
+        String query = exchange.getRequestURI().getQuery();
+
+        Map<String, String> result = new HashMap<>();
+        if(query != null) {
+            for (String param : query.split("&")) {
+                String[] entry = param.split("=");
+                if (entry.length > 1) {
+                    result.put(entry[0], entry[1]);
+                } else {
+                    result.put(entry[0], "");
+                }
+            }
+        }
+        return result;
+    }
 
     protected void write(OutputStream writtable, InputStream readable, long length) throws IOException {
         long writted = 0;
@@ -60,6 +135,20 @@ public abstract class AbstractHttpHandler implements HttpHandler {
             writted += buffer.length;
         }
         readable.close();
+    }
+
+    protected byte[] readBody(HttpExchange exchange) throws IOException {
+        int length = Integer.parseInt(exchange.getRequestHeaders().get("Content-Length").get(0));
+        long readed = 0;
+
+        ByteBuffer byteBuffer = ByteBuffer.allocate(length);
+
+        while (readed != length) {
+            byte[] buffer = exchange.getRequestBody().readNBytes(buffSize);
+            readed += buffer.length;
+            byteBuffer.put(buffer);
+        }
+        return byteBuffer.array();
     }
 
 }

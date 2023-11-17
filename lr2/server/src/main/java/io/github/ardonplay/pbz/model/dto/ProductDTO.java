@@ -1,14 +1,14 @@
 package io.github.ardonplay.pbz.model.dto;
 
-import lombok.Builder;
-import lombok.Data;
+import lombok.*;
+
+import java.math.BigDecimal;
 
 @Data
-@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class ProductDTO {
+    private Integer id;
     private String type;
     private String name;
-    private int id;
-
-    private int count;
 }

@@ -1,15 +1,26 @@
 package io.github.ardonplay.pbz.model.dto;
 
 import io.github.ardonplay.pbz.model.enums.PersonType;
-import lombok.Builder;
-import lombok.Data;
+import lombok.*;
 
 import java.util.UUID;
 
 @Data
-@Builder
+@RequiredArgsConstructor
+@NoArgsConstructor
+@AllArgsConstructor
 public class CustomerDTO {
+    @NonNull
     private UUID id;
+    @NonNull
     private String name;
+    @NonNull
     private PersonType type;
+
+    private String address;
+
+    private String phoneNumber;
+
+
+    private BankDetailsDTO bankDetails;
 }

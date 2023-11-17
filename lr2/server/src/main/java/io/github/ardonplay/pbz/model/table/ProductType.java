@@ -22,6 +22,6 @@ public class ProductType {
     @NonNull
     private String type;
 
-    @OneToMany(mappedBy = "productType")
+    @OneToMany(cascade = {CascadeType.PERSIST, CascadeType.MERGE}, mappedBy = "productType")
     private List<Product> products;
 }

@@ -1,4 +1,4 @@
-package io.github.ardonplay.pbz.services;
+package io.github.ardonplay.pbz.model;
 
 import com.sun.net.httpserver.Headers;
 import lombok.AllArgsConstructor;

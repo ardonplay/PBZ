@@ -23,10 +23,11 @@ public class Product {
     @Column(name = "name")
     private String name;
 
-    @ManyToOne()
+    @NonNull
+    @ManyToOne(cascade = {CascadeType.PERSIST, CascadeType.MERGE})
     @JoinColumn(name = "type", referencedColumnName = "id")
     private ProductType productType;
 
-    @OneToMany(mappedBy = "product")
+    @OneToMany(cascade = {CascadeType.PERSIST, CascadeType.MERGE}, mappedBy = "product")
     private List<WaybillProduct> waybillProducts;
 }

@@ -27,7 +27,6 @@ public class BankDetails {
     private String name;
 
     @OneToOne()
-    @JsonManagedReference
     @JoinColumn(name = "customer_id", referencedColumnName = "id")
     private Customer customer;
 

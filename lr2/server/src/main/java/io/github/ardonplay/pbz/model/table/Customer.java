@@ -1,7 +1,5 @@
 package io.github.ardonplay.pbz.model.table;
 
-import com.fasterxml.jackson.annotation.JsonBackReference;
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import io.github.ardonplay.pbz.model.enums.PersonType;
 import jakarta.persistence.*;
 import lombok.*;
@@ -16,7 +14,6 @@ import java.util.UUID;
 @RequiredArgsConstructor
 @Getter
 @Setter
-@JsonIgnoreProperties(ignoreUnknown = true)
 public class Customer {
     @Id
     @Column(name = "id")
@@ -29,7 +26,6 @@ public class Customer {
 
     @Column(name = "type", columnDefinition = "person_type")
     @Enumerated(EnumType.STRING)
-    @ColumnTransformer(write = "?::person_type")
     @NonNull
     private PersonType type;
 
@@ -41,11 +37,9 @@ public class Customer {
     @NonNull
     private String phoneNumber;
 
-    @JsonBackReference
-    @OneToOne(cascade = CascadeType.PERSIST, mappedBy = "customer")
+    @OneToOne(cascade = {CascadeType.PERSIST, CascadeType.MERGE}, mappedBy = "customer")
     private BankDetails bankDetails;
 
-    @OneToMany(mappedBy = "customer")
-    @JsonBackReference
+    @OneToMany(cascade = {CascadeType.PERSIST, CascadeType.MERGE}, mappedBy = "customer")
     private List<Waybill> waybills;
 }
