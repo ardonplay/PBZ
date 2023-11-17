@@ -1,7 +1,7 @@
 SET datestyle TO 'ISO, DMY';
 CREATE TABLE "product_type"(
     "id" SERIAL PRIMARY KEY,
-    "type" VARCHAR NOT NULL
+    "type" VARCHAR NOT NULL UNIQUE
 );
 
 CREATE TYPE "person_type" AS ENUM ( 'INDIVIDUAL', 'LEGAL' );
@@ -10,7 +10,7 @@ CREATE TYPE "person_type" AS ENUM ( 'INDIVIDUAL', 'LEGAL' );
 CREATE TABLE
     "products" (
         "id" SERIAL PRIMARY KEY,
-        "name" varchar NOT NULL,
+        "name" varchar NOT NULL UNIQUE,
         "type" int NOT NULL,
         FOREIGN KEY ("type") REFERENCES "product_type" ("id") ON DELETE CASCADE
     );
