@@ -3,30 +3,23 @@ package io.github.ardonplay.pbz.controllers.impl;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sun.net.httpserver.HttpExchange;
 import io.github.ardonplay.pbz.controllers.HttpController;
+import io.github.ardonplay.pbz.controllers.impl.handler.AbstractHttpHandler;
+import io.github.ardonplay.pbz.exceptions.NetworkException;
 import io.github.ardonplay.pbz.model.dto.ProductDTO;
-import io.github.ardonplay.pbz.model.table.Product;
-import io.github.ardonplay.pbz.repository.table.ProductRepository;
-import io.github.ardonplay.pbz.services.AbstractHttpHandler;
 import io.github.ardonplay.pbz.model.ResponseEntity;
+import io.github.ardonplay.pbz.services.ProductService;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Controller;
 
 import java.io.IOException;
 import java.util.Map;
-import java.util.NoSuchElementException;
-import java.util.Optional;
-import java.util.stream.Collectors;
 
 @Slf4j
 @Controller
 @AllArgsConstructor
 public class ProductController implements HttpController {
-
-    private final ProductRepository repository;
-
-    private final ModelMapper modelMapper;
+    private final ProductService service;
 
     private final ObjectMapper objectMapper;
 
@@ -43,10 +36,10 @@ public class ProductController implements HttpController {
                 Map<String, String> requestParams = getRequestParams(exchange);
                 try {
                     if (requestParams.isEmpty()) {
-                        return new ResponseEntity(repository.findAll().stream().map(repository -> modelMapper.map(repository, ProductDTO.class)).collect(Collectors.toList()));
+                        return new ResponseEntity(service.getAllProducts());
                     }
                     if (requestParams.containsKey("id")) {
-                        return new ResponseEntity(repository.findById(Integer.parseInt(requestParams.get("id"))).map(product -> modelMapper.map(product, ProductDTO.class)).orElseThrow(NoSuchElementException::new));
+                        return new ResponseEntity(service.getProductById(Integer.parseInt(requestParams.get("id"))));
                     } else {
                         return new ResponseEntity(400);
                     }
@@ -58,29 +51,32 @@ public class ProductController implements HttpController {
             @Override
             protected ResponseEntity postRequest(HttpExchange exchange) {
                 try {
-                    byte[] body = readBody(exchange);
-                    ProductDTO productDTO = objectMapper.readValue(body, ProductDTO.class);
-                    Optional<Product> product = repository.findByName(productDTO.getName());
-                    if(product.isPresent()){
-                      return new ResponseEntity(400);
-                    }
-                    else {
-                        repository.save(modelMapper.map(productDTO, Product.class));
-                        return new ResponseEntity(productDTO);
-                    }
+                    ProductDTO productDTO = objectMapper.readValue(readBody(exchange), ProductDTO.class);
+                    return new ResponseEntity(service.insertProduct(productDTO));
                 } catch (IOException e) {
-                    return new ResponseEntity(400);
+                    throw new NetworkException();
                 }
             }
 
             @Override
-            protected ResponseEntity putRequest(HttpExchange exchange) {
-                return super.putRequest(exchange);
+            protected ResponseEntity patchRequest(HttpExchange exchange) {
+                try {
+                    ProductDTO productDTO = objectMapper.readValue(readBody(exchange), ProductDTO.class);
+                    return new ResponseEntity(service.updateProduct(productDTO));
+                } catch (IOException e) {
+                    throw new NetworkException();
+                }
             }
 
             @Override
             protected ResponseEntity deleteRequest(HttpExchange exchange) {
-                return super.deleteRequest(exchange);
+                try {
+                    ProductDTO productDTO = objectMapper.readValue(readBody(exchange), ProductDTO.class);
+                    service.deleteProduct(productDTO);
+                    return new ResponseEntity("OK");
+                } catch (IOException e) {
+                    throw new NetworkException();
+                }
             }
         };
     }

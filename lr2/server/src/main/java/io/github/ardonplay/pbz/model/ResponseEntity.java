@@ -33,4 +33,10 @@ public class ResponseEntity {
         this.headers = headers;
         this.body = null;
     }
+
+    public ResponseEntity(int i, String s) {
+        this.headers = null;
+        this.status = i;
+        this.body = s;
+    }
 }

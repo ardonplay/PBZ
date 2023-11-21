@@ -1,9 +1,11 @@
-package io.github.ardonplay.pbz.services;
+package io.github.ardonplay.pbz.controllers.impl.handler;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
+import io.github.ardonplay.pbz.exceptions.BadRequestException;
+import io.github.ardonplay.pbz.exceptions.NetworkException;
 import io.github.ardonplay.pbz.model.ResponseEntity;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -43,8 +45,21 @@ public abstract class AbstractHttpHandler implements HttpHandler {
 
         try {
             response = this.requestHandlers.computeIfAbsent(exchange.getRequestMethod(), key -> ResponseEntity::new).get();
-        }catch (RuntimeException e){
-            log.error(e.getLocalizedMessage());
+        }
+        catch (NetworkException e){
+            log.warn("Connection lost!");
+            response = new ResponseEntity(500, "Connection lost!");
+        }
+        catch (NoSuchElementException e){
+            log.warn(e.getLocalizedMessage());
+            response = new ResponseEntity(404);
+        }
+        catch (BadRequestException e){
+            log.warn(e.getLocalizedMessage());
+            response = new ResponseEntity(400);
+        }
+        catch (RuntimeException e){
+            log.warn(e.getLocalizedMessage());
             response = new ResponseEntity(500);
         }
         uploadResponceEntity(exchange, response);

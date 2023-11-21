@@ -3,12 +3,13 @@ package io.github.ardonplay.pbz.controllers.impl;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sun.net.httpserver.HttpExchange;
 import io.github.ardonplay.pbz.controllers.HttpController;
+import io.github.ardonplay.pbz.controllers.impl.handler.AbstractHttpHandler;
+import io.github.ardonplay.pbz.exceptions.BadRequestException;
+import io.github.ardonplay.pbz.exceptions.NetworkException;
 import io.github.ardonplay.pbz.model.dto.WaybillDTO;
-import io.github.ardonplay.pbz.services.AbstractHttpHandler;
 import io.github.ardonplay.pbz.model.ResponseEntity;
 import io.github.ardonplay.pbz.services.WaybillService;
 import lombok.AllArgsConstructor;
-import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Controller;
 
 import java.io.IOException;
@@ -38,19 +39,16 @@ public class WaybillController implements HttpController {
 
                 Map<String, String> requestParams = getRequestParams(exchange);
 
-                try {
-                    if (requestParams.isEmpty()) {
-                        return new ResponseEntity(service.getAllWaybills());
+                if (requestParams.isEmpty()) {
+                    return new ResponseEntity(service.getAllWaybills());
+                } else if (requestParams.containsKey("id")) {
+                    if (!requestParams.get("id").matches("-?\\d+")) {
+                        throw new BadRequestException();
                     }
-                    if (requestParams.containsKey("id")) {
-
-                        return new ResponseEntity(service.getWaybillById(Integer.parseInt(requestParams.get("id"))));
-                    } else {
-                        return new ResponseEntity(400);
-                    }
-                } catch (NoSuchElementException e) {
-                    return new ResponseEntity(404);
+                    return new ResponseEntity(service.getWaybillById(Integer.parseInt(requestParams.get("id"))));
                 }
+                throw new BadRequestException();
+
             }
 
             @Override
@@ -60,7 +58,7 @@ public class WaybillController implements HttpController {
                     WaybillDTO waybillDTO = objectMapper.readValue(readBody(exchange), WaybillDTO.class);
                     return new ResponseEntity(service.insertWaybill(waybillDTO));
                 } catch (IOException e) {
-                    throw new RuntimeException(e);
+                    throw new RuntimeException();
                 }
             }
 
@@ -69,11 +67,10 @@ public class WaybillController implements HttpController {
                 try {
                     WaybillDTO waybillDTO = objectMapper.readValue(readBody(exchange), WaybillDTO.class);
                     return new ResponseEntity(service.updateWaybill(waybillDTO));
-                } catch (DataIntegrityViolationException | NoSuchElementException e) {
-                    return new ResponseEntity(409);
-                } catch (IOException ex) {
-                    throw new RuntimeException(ex);
+                } catch (IOException e) {
+                    throw new NetworkException();
                 }
+
             }
 
             @Override
@@ -81,18 +78,16 @@ public class WaybillController implements HttpController {
                 try {
                     WaybillDTO waybillDTO = objectMapper.readValue(readBody(exchange), WaybillDTO.class);
 
-                    try {
-                        service.deleteWaybill(waybillDTO);
-                        return new ResponseEntity("OK");
-                    } catch (DataIntegrityViolationException e) {
-                        return new ResponseEntity(409);
-                    }
+                    service.deleteWaybill(waybillDTO);
+                    return new ResponseEntity("OK");
 
                 } catch (IOException e) {
-                    throw new RuntimeException(e);
+                    throw new NetworkException();
                 }
             }
 
-        };
+        }
+
+                ;
     }
 }

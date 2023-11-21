@@ -1,7 +1,5 @@
 package io.github.ardonplay.pbz.services;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import io.github.ardonplay.pbz.model.ResponseEntity;
 import io.github.ardonplay.pbz.model.dto.DestinationDTO;
 import io.github.ardonplay.pbz.model.dto.WaybillDTO;
 import io.github.ardonplay.pbz.model.table.Waybill;

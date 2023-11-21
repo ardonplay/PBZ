@@ -3,28 +3,24 @@ package io.github.ardonplay.pbz.controllers.impl;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sun.net.httpserver.HttpExchange;
 import io.github.ardonplay.pbz.controllers.HttpController;
+import io.github.ardonplay.pbz.controllers.impl.handler.AbstractHttpHandler;
+import io.github.ardonplay.pbz.exceptions.BadRequestException;
+import io.github.ardonplay.pbz.exceptions.NetworkException;
 import io.github.ardonplay.pbz.model.dto.CustomerDTO;
-import io.github.ardonplay.pbz.model.table.Customer;
-import io.github.ardonplay.pbz.repository.table.CustomerRepository;
-import io.github.ardonplay.pbz.services.AbstractHttpHandler;
 import io.github.ardonplay.pbz.model.ResponseEntity;
+import io.github.ardonplay.pbz.services.CustomerService;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.modelmapper.ModelMapper;
-import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Controller;
 
 import java.io.IOException;
 import java.util.*;
-import java.util.stream.Collectors;
 
 @Slf4j
 @AllArgsConstructor
 @Controller
 public class CustomerController implements HttpController {
-    private final CustomerRepository repository;
-
-    private final ModelMapper modelMapper;
+    private final CustomerService service;
 
     private final ObjectMapper objectMapper;
 
@@ -43,50 +39,25 @@ public class CustomerController implements HttpController {
 
                 Map<String, String> requestParams = getRequestParams(exchange);
 
-                try {
-                    if (requestParams.isEmpty()) {
-                        return new ResponseEntity(repository
-                                .findAll()
-                                .stream()
-                                .map(customer ->
-                                        new CustomerDTO(customer.getId(), customer.getName(), customer.getType()))
-                                .collect(Collectors.toList()));
-                    }
-                    if (requestParams.containsKey("id")) {
-                        return new ResponseEntity(
-                                repository
-                                        .findById(UUID.fromString(requestParams.get("id")))
-                                        .map(customer ->
-                                                modelMapper.map(customer, CustomerDTO.class))
-                                        .orElseThrow(NoSuchElementException::new));
-                    } else {
-                        return new ResponseEntity(400);
-                    }
-
-                } catch (NoSuchElementException e) {
-                    return new ResponseEntity(404);
+                if (requestParams.isEmpty()) {
+                    return new ResponseEntity(service.getAllCustomers());
                 }
+                if (requestParams.containsKey("id")) {
+                    if (requestParams.get("id").matches("^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$")) {
+                        return new ResponseEntity(
+                                service.getCustomerById(UUID.fromString(requestParams.get("id"))));
+                    }
+                }
+                throw new BadRequestException();
             }
 
             @Override
             public ResponseEntity postRequest(HttpExchange exchange) {
-
                 try {
-                    byte[] body = readBody(exchange);
-
-                    CustomerDTO customerDTO = objectMapper.readValue(body, CustomerDTO.class);
-
-                    Customer customer = modelMapper.map(customerDTO, Customer.class);
-
-                    try {
-                        customer = repository.save(customer);
-                        return new ResponseEntity(customer.getId());
-                    } catch (DataIntegrityViolationException e) {
-                        return new ResponseEntity(409);
-                    }
-
+                    CustomerDTO customerDTO = objectMapper.readValue(readBody(exchange), CustomerDTO.class);
+                    return new ResponseEntity(service.insertCustomer(customerDTO));
                 } catch (IOException e) {
-                    throw new RuntimeException(e);
+                    throw new NetworkException();
                 }
             }
 
@@ -94,34 +65,20 @@ public class CustomerController implements HttpController {
             public ResponseEntity patchRequest(HttpExchange exchange) {
                 try {
                     CustomerDTO customerDTO = objectMapper.readValue(readBody(exchange), CustomerDTO.class);
-
-                    Customer customer = repository.findById(customerDTO.getId()).orElseThrow(NoSuchElementException::new);
-                    modelMapper.map(customerDTO, customer);
-                    customer = repository.save(customer);
-                    return new ResponseEntity(customer.getBankDetails().getName());
-                } catch (DataIntegrityViolationException | NoSuchElementException e) {
-                    return new ResponseEntity(409);
+                    return new ResponseEntity(service.updateCustomer(customerDTO));
                 } catch (IOException ex) {
-                    throw new RuntimeException(ex);
+                    throw new NetworkException();
                 }
             }
 
             @Override
             public ResponseEntity deleteRequest(HttpExchange exchange) {
                 try {
-                    byte[] body = readBody(exchange);
-
-                    CustomerDTO customerDTO = objectMapper.readValue(body, CustomerDTO.class);
-
-                    try {
-                        repository.deleteById(customerDTO.getId());
-                        return new ResponseEntity("OK");
-                    } catch (DataIntegrityViolationException e) {
-                        return new ResponseEntity(409);
-                    }
-
+                    CustomerDTO customerDTO = objectMapper.readValue(readBody(exchange), CustomerDTO.class);
+                    service.deleteCustomerById(customerDTO);
+                    return new ResponseEntity(200);
                 } catch (IOException e) {
-                    throw new RuntimeException(e);
+                    throw new NetworkException();
                 }
             }
 
