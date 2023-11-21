@@ -29,7 +29,6 @@ public abstract class AbstractHttpHandler implements HttpHandler {
         this.mapper = mapper;
     }
 
-    //TODO add object mapper as bean!
     @Override
     public void handle(HttpExchange exchange) {
 

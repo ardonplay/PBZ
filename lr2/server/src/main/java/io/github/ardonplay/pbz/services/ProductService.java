@@ -4,6 +4,7 @@ package io.github.ardonplay.pbz.services;
 import io.github.ardonplay.pbz.model.dto.ProductDTO;
 import io.github.ardonplay.pbz.model.table.Product;
 import io.github.ardonplay.pbz.repository.table.ProductRepository;
+import io.github.ardonplay.pbz.repository.table.ProductTypeRepository;
 import lombok.AllArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -17,7 +18,6 @@ import java.util.stream.Collectors;
 @AllArgsConstructor
 public class ProductService {
     private final ProductRepository repository;
-
     private final ModelMapper modelMapper;
 
     public List<ProductDTO> getAllProducts() {

@@ -7,6 +7,8 @@ import lombok.*;
 @RequiredArgsConstructor
 @NoArgsConstructor
 public class DestinationDTO {
+    private Integer id;
+
     @NonNull
     private String name;
 

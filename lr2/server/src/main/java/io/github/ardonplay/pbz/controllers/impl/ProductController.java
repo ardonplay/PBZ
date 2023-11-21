@@ -4,10 +4,12 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sun.net.httpserver.HttpExchange;
 import io.github.ardonplay.pbz.controllers.HttpController;
 import io.github.ardonplay.pbz.controllers.impl.handler.AbstractHttpHandler;
+import io.github.ardonplay.pbz.exceptions.BadRequestException;
 import io.github.ardonplay.pbz.exceptions.NetworkException;
 import io.github.ardonplay.pbz.model.dto.ProductDTO;
 import io.github.ardonplay.pbz.model.ResponseEntity;
 import io.github.ardonplay.pbz.services.ProductService;
+import io.github.ardonplay.pbz.services.ProductTypeService;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Controller;
@@ -34,18 +36,13 @@ public class ProductController implements HttpController {
             @Override
             protected ResponseEntity getRequest(HttpExchange exchange) {
                 Map<String, String> requestParams = getRequestParams(exchange);
-                try {
-                    if (requestParams.isEmpty()) {
-                        return new ResponseEntity(service.getAllProducts());
-                    }
-                    if (requestParams.containsKey("id")) {
-                        return new ResponseEntity(service.getProductById(Integer.parseInt(requestParams.get("id"))));
-                    } else {
-                        return new ResponseEntity(400);
-                    }
-                } catch (Exception e) {
-                    return new ResponseEntity(400);
+                if (requestParams.isEmpty()) {
+                    return new ResponseEntity(service.getAllProducts());
                 }
+                if (requestParams.containsKey("id")) {
+                    return new ResponseEntity(service.getProductById(Integer.parseInt(requestParams.get("id"))));
+                }
+                throw new BadRequestException();
             }
 
             @Override
