@@ -1,8 +1,8 @@
-import ProductsLogo from "../assets/productsLogo";
-import CustomersLogo from "../assets/customersLogo";
-import Logo from "../assets/logo";
-import WaybillsLogo from "../assets/waybillsLogo";
-import DestinationsLogo from "../assets/destinationsLogo";
+import ProductsLogo from "../../assets/productsLogo";
+import CustomersLogo from "../../assets/customersLogo";
+import Logo from "../../assets/logo";
+import WaybillsLogo from "../../assets/waybillsLogo";
+import DestinationsLogo from "../../assets/destinationsLogo";
 import DashboardComponent from "./DashboardComponent";
 
 export default function Dashboard() {
