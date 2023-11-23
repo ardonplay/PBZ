@@ -7,11 +7,16 @@
 		"preview": "vite preview"
 	},
 	"dependencies": {
-		"flowbite-datepicker": "^1.2.4",
+		"axios": "^1.6.2",
+		"flowbite": "^2.2.0",
 		"preact": "^10.13.1",
 		"preact-iso": "^2.3.2",
 		"preact-render-to-string": "^6.3.1",
-		"tailwind-datepicker-react": "^1.4.3"
+		"preact-router": "^4.1.2",
+		"react": "npm:@preact/compat@^17.1.2",
+		"react-dom": "npm:@preact/compat@^17.1.2",
+		"redux": "^4.2.1",
+		"redux-toolkit": "^1.1.2"
 	},
 	"devDependencies": {
 		"@preact/preset-vite": "^2.5.0",
