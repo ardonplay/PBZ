@@ -9,6 +9,6 @@ import java.math.BigDecimal;
 @AllArgsConstructor
 public class ProductDTO {
     private Integer id;
-    private String type;
     private String name;
+    private String type;
 }

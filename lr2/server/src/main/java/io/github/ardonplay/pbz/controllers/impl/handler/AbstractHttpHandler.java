@@ -90,7 +90,7 @@ public abstract class AbstractHttpHandler implements HttpHandler {
     }
 
     protected ResponseEntity optionsRequest(HttpExchange exchange){
-        return new ResponseEntity();
+        return new ResponseEntity(200);
     }
 
 
@@ -103,7 +103,9 @@ public abstract class AbstractHttpHandler implements HttpHandler {
             if (responseEntity.getHeaders() != null) {
                 exchange.getResponseHeaders().putAll(responseEntity.getHeaders());
             }
-
+            exchange.getResponseHeaders().put("Access-Control-Allow-Origin", Collections.singletonList("*"));
+            exchange.getResponseHeaders().put("Access-Control-Allow-Methods", Collections.singletonList("POST, PATCH, GET, PUT"));
+            exchange.getResponseHeaders().put("Access-Control-Allow-Headers", Collections.singletonList("X-PINGOTHER, Content-Type"));
             byte[] bytes = new byte[0];
 
             if (responseEntity.getBody() != null) {

@@ -1,8 +1,4 @@
-import { useState } from "preact/hooks"
-import ProductEditModal from "../Modal/ProductEditModal"
-import { JSX } from "preact/jsx-runtime"
-
-export default function TableRow(props: { data: string[], onEdit: Function, id: number, editModal: JSX.Element }) {
+export default function TableRow(props: {id: number,  data: string[], onEdit: Function }) {
     
 
     return (
@@ -12,10 +8,9 @@ export default function TableRow(props: { data: string[], onEdit: Function, id: 
                     {col}
                 </td>)}
                <td class="px-6 py-4">
-                    <button class="font-medium text-blue-600 dark:text-blue-500 hover:underline" onClick={() => props.onEdit(true)}>Edit</button>
+                    <button class="font-medium text-blue-600 dark:text-blue-500 hover:underline" onClick={() => props.onEdit(props.id)}>Edit</button>
                 </td>
             </tr>
-            {props.editModal}
         </>
 
     )

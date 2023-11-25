@@ -5,12 +5,14 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import org.modelmapper.ModelMapper;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 
 @Configuration
+@ComponentScan("io.github.ardonplay.pbz")
 public class MapperConfiguration {
 
     @Bean

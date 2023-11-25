@@ -10,8 +10,7 @@ import java.util.List;
 @Table(name = "product_type")
 @RequiredArgsConstructor
 @NoArgsConstructor
-@Getter
-@Setter
+@Data
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class ProductType {
     @Id
@@ -22,6 +21,6 @@ public class ProductType {
     @NonNull
     private String type;
 
-    @OneToMany(cascade = {CascadeType.PERSIST, CascadeType.MERGE}, mappedBy = "productType")
+    @OneToMany(mappedBy = "productType")
     private List<Product> products;
 }

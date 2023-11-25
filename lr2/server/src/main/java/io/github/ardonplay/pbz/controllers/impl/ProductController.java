@@ -49,6 +49,8 @@ public class ProductController implements HttpController {
             protected ResponseEntity postRequest(HttpExchange exchange) {
                 try {
                     ProductDTO productDTO = objectMapper.readValue(readBody(exchange), ProductDTO.class);
+
+                    System.out.println(productDTO);
                     return new ResponseEntity(service.insertProduct(productDTO));
                 } catch (IOException e) {
                     throw new NetworkException();

@@ -9,8 +9,7 @@ import lombok.*;
 @Table(name = "bank_details")
 @NoArgsConstructor
 @RequiredArgsConstructor
-@Getter
-@Setter
+@Data
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class BankDetails {
     @Id

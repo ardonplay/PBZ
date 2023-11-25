@@ -10,8 +10,7 @@ import java.util.List;
 @Table(name = "products")
 @RequiredArgsConstructor
 @NoArgsConstructor
-@Getter
-@Setter
+@Data
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class Product {
     @Id
@@ -24,7 +23,7 @@ public class Product {
     private String name;
 
     @NonNull
-    @ManyToOne(cascade = {CascadeType.PERSIST, CascadeType.MERGE})
+    @ManyToOne()
     @JoinColumn(name = "type", referencedColumnName = "id")
     private ProductType productType;
 

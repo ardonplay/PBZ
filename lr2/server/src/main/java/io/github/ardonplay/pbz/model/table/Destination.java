@@ -11,8 +11,7 @@ import java.util.List;
 @Table(name = "destinations")
 @RequiredArgsConstructor
 @NoArgsConstructor
-@Getter
-@Setter
+@Data
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class Destination {
     @Id
