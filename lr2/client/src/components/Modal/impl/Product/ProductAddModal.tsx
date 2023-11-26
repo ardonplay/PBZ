@@ -5,11 +5,13 @@ import ProductCategories from "./components/ProductCategories";
 import ProductNameInput from "./components/ProductNameInput";
 import DialogCloseButton from "../../components/DialogCloseButton";
 import SaveButton from "../../components/SaveButton";
+import { ThunkDispatch } from "@reduxjs/toolkit";
 
 export default function ProductAddModal() {
 
     const dispatch = useDispatch();
-
+    const asyncdispatch = useDispatch<ThunkDispatch<any, any, any>>()
+    
     const data = useSelector((state) => state.products.selectedRow) as productRow;
 
     const productTypes = useSelector((state) => state.products.types) as string[]

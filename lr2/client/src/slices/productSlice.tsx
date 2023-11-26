@@ -1,6 +1,7 @@
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit'
-import type { PayloadAction } from '@reduxjs/toolkit'
+import type { PayloadAction, ThunkDispatch } from '@reduxjs/toolkit'
 import axios from 'axios'
+import { useDispatch } from 'react-redux'
 
 export interface productRow {
     id: number,
@@ -44,6 +45,14 @@ const initialState = {
 } as productState
 
 
+export const addProduct = createAsyncThunk(
+    'products/add',
+    async (row: productRow) => {
+        const response = await axios.post("http://localhost:8080/api/v1/products", row);
+        return response.data
+    }
+)
+
 const productSlice = createSlice({
     name: 'products',
     initialState,
@@ -51,7 +60,7 @@ const productSlice = createSlice({
         setProducts(state, action: PayloadAction<productRow[]>) {
             state.list = action.payload;
         },
-    
+
         update(state, action: PayloadAction<productRow>) {
             state.list = state.list.map(row => (row.id == action.payload.id) ? action.payload : row)
             axios.patch("http://localhost:8080/api/v1/products", action.payload).then();
@@ -70,13 +79,18 @@ const productSlice = createSlice({
             state.types = action.payload
         },
         addNewProduct(state, action: PayloadAction<productRow>) {
-           await axios.post("http://localhost:8080/api/v1/products", action.payload);
+            addProduct(action.payload)
             state.addNewDialogOpen = false
         },
         deleteProduct(state, action: PayloadAction<productRow>) {
             state.list = state.list.filter(row => row.id !== action.payload.id);
             state.editDialogOpen = false
         }
+    },
+    extraReducers: (builder) => {
+        builder.addCase(addProduct.fulfilled, (state, action) => {
+            state.list.push(action.payload)
+        })
     },
 })
 

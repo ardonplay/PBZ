@@ -6,3 +6,6 @@ export default configureStore({
     products: productReducer,
   },
 });
+
+
+
