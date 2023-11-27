@@ -3,15 +3,17 @@ import ProductAddModal from "../../components/Modal/impl/Product/ProductAddModal
 import ProductEditModal from "../../components/Modal/impl/Product/ProductEditModal";
 import TableHead from "../../components/Table/TableHead";
 import TableRow from "../../components/Table/TableRow";
-import { setSelectedRow, productRow, setEditDialogOpen, setAddNewDialogOpen, setProducts } from '../../slices/productSlice';
+import { setSelectedRow, productRow, setEditDialogOpen, setAddNewDialogOpen, setProducts, ProductThunkDispatch, getAllProducts, getProductTypes } from '../../slices/productSlice';
 import { useSelector, useDispatch } from 'react-redux';
-import axios from "axios";
 export default function Products() {
     const dispatch = useDispatch();
+    
+    const thunkDispatch: ProductThunkDispatch = useDispatch();
 
 
     useEffect(() => {
-        axios.get("http://localhost:8080/api/v1/products").then(responce => dispatch(setProducts(responce.data as productRow[])))
+       thunkDispatch(getAllProducts())
+       thunkDispatch(getProductTypes())
     }, [])
 
     const products = useSelector((state) => state.products.list) as productRow[]
@@ -31,7 +33,7 @@ export default function Products() {
                     <table class="w-full text-sm text-left rtl:text-right text-gray-500 bg-slate-800">
                         <TableHead columns={["id", "Name", "Type", "Action"]} />
                         <tbody>
-                            {products.map((product, i) => <TableRow key={i} id={i} data={[product.id.toString(), product.name, product.type]} onEdit={openDialog} />)}
+                            {products.map((product, i) => <TableRow key={i} id={i} data={[product.id.toString(), product.name, product.type.name]} onEdit={openDialog} />)}
                         </tbody>
                     </table>
                 </div>

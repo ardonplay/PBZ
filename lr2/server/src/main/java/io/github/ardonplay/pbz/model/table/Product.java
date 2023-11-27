@@ -3,6 +3,7 @@ package io.github.ardonplay.pbz.model.table;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.Cascade;
 
 import java.util.List;
 
@@ -23,7 +24,7 @@ public class Product {
     private String name;
 
     @NonNull
-    @ManyToOne()
+    @ManyToOne(cascade = {CascadeType.PERSIST, CascadeType.MERGE})
     @JoinColumn(name = "type", referencedColumnName = "id")
     private ProductType productType;
 

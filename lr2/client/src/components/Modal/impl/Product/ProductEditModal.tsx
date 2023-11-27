@@ -1,5 +1,5 @@
 import Modal from "../../Modal";
-import { setSelectedRow, productRow, setEditDialogOpen, update, deleteProduct } from '../../../../slices/productSlice';
+import { setSelectedRow, productRow, setEditDialogOpen, deleteProduct, ProductThunkDispatch, updateProduct, productType } from '../../../../slices/productSlice';
 import { useSelector, useDispatch } from 'react-redux';
 import ProductCategories from "./components/ProductCategories";
 import ProductNameInput from "./components/ProductNameInput";
@@ -11,9 +11,11 @@ export default function ProductEditModal() {
 
     const dispatch = useDispatch();
 
+    const thunkDispatch: ProductThunkDispatch = useDispatch();
+
     const data = useSelector((state) => state.products.selectedRow) as productRow;
 
-    const productTypes = useSelector((state) => state.products.types) as string[]
+    const productTypes = useSelector((state) => state.products.types) as productType[]
 
     const dialogOpen = useSelector((state) => state.products.editDialogOpen) as boolean;
 
@@ -34,11 +36,11 @@ export default function ProductEditModal() {
                     <div class="p-4 md:p-5 md:w-96 w-20">
                         <div class="grid gap-5 mb-4 grid-cols-2">
                             <ProductNameInput onChange={(e: string) => setData({ ...data, name: e })} value={data.name} />
-                            <ProductCategories onChange={(e: string) => setData({ ...data, type: e })} value={data.type} values={productTypes} />
+                            <ProductCategories onChange={(e: string) => setData({ ...data, type: productTypes.filter(type => type.name === e)[0] })} value={data.type.name} values={productTypes.map(type => type.name)} />
                         </div>
                         <div class="flex space-x-5">
-                            <DeleteButton onClick={() => {dispatch(deleteProduct(data)) }} />
-                            <SaveButton onClick={() => dispatch(update({ ...data, edited: true }))} />
+                            <DeleteButton onClick={() => { thunkDispatch(deleteProduct(data))}} />
+                            <SaveButton onClick={() => thunkDispatch(updateProduct(data))} />
                         </div>
 
                     </div>

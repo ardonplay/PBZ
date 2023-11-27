@@ -1,6 +1,7 @@
 package io.github.ardonplay.pbz.services;
 
 import io.github.ardonplay.pbz.model.dto.ProductDTO;
+import io.github.ardonplay.pbz.model.dto.ProductTypeDTO;
 import io.github.ardonplay.pbz.repository.table.ProductTypeRepository;
 import lombok.AllArgsConstructor;
 import org.modelmapper.ModelMapper;
@@ -16,8 +17,8 @@ public class ProductTypeService {
 
     private final ModelMapper modelMapper;
 
-    public List<ProductDTO> getAllTypes(){
-        return repository.findAll().stream().map(type -> modelMapper.map(type, ProductDTO.class)).collect(Collectors.toList());
+    public List<ProductTypeDTO> getAllTypes(){
+        return repository.findAll().stream().map(type -> modelMapper.map(type, ProductTypeDTO.class)).collect(Collectors.toList());
     }
 
 }

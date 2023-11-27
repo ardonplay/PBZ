@@ -72,7 +72,7 @@ public class ProductController implements HttpController {
                 try {
                     ProductDTO productDTO = objectMapper.readValue(readBody(exchange), ProductDTO.class);
                     service.deleteProduct(productDTO);
-                    return new ResponseEntity("OK");
+                    return new ResponseEntity(productDTO);
                 } catch (IOException e) {
                     throw new NetworkException();
                 }

@@ -19,7 +19,8 @@ public class ProductType {
     private int id;
 
     @NonNull
-    private String type;
+    @Column(name = "name")
+    private String name;
 
     @OneToMany(mappedBy = "productType")
     private List<Product> products;

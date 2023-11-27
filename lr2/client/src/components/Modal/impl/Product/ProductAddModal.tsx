@@ -1,20 +1,18 @@
 import Modal from "../../Modal";
-import { setSelectedRow, productRow, setAddNewDialogOpen,addNewProduct } from '../../../../slices/productSlice';
+import { setSelectedRow, productRow, setAddNewDialogOpen,addNewProduct, ProductThunkDispatch, productType } from '../../../../slices/productSlice';
 import { useSelector, useDispatch } from 'react-redux';
 import ProductCategories from "./components/ProductCategories";
 import ProductNameInput from "./components/ProductNameInput";
 import DialogCloseButton from "../../components/DialogCloseButton";
 import SaveButton from "../../components/SaveButton";
-import { ThunkDispatch } from "@reduxjs/toolkit";
 
 export default function ProductAddModal() {
 
     const dispatch = useDispatch();
-    const asyncdispatch = useDispatch<ThunkDispatch<any, any, any>>()
-    
+
     const data = useSelector((state) => state.products.selectedRow) as productRow;
 
-    const productTypes = useSelector((state) => state.products.types) as string[]
+    const productTypes = useSelector((state) => state.products.types) as productType[]
 
     const dialogOpen = useSelector((state) => state.products.addNewDialogOpen) as boolean;
 
@@ -22,6 +20,16 @@ export default function ProductAddModal() {
         dispatch(setSelectedRow(data))
     }
 
+    const uploadData = () =>{
+        fetch("http://localhost:8080/api/v1/products", {
+            method: "POST", headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(data)
+        })
+            .then(response => response.json()).then(data => {
+                dispatch(addNewProduct(data))
+                console.log(data)
+            })
+    }
     return (
         <Modal open={dialogOpen} onClose={() => dispatch(setAddNewDialogOpen(false))}>
             <div class="relative p-4 w-full max-w-md max-h-full">
@@ -34,11 +42,11 @@ export default function ProductAddModal() {
                     </div>
                     <div class="p-4 md:p-5 md:w-96 w-20">
                         <div class="grid gap-5 mb-4 grid-cols-2">
-                            <ProductNameInput onChange={(e: string) => setData({ ...data, name: e })} value={data.name} />
-                            <ProductCategories onChange={(e: string) => setData({ ...data, type: e })} value={data.type} values={productTypes} />
+                            <ProductNameInput  onChange={(e: string) => setData({ ...data, name: e })} value={data.name} />
+                            <ProductCategories onChange={(e: string) => setData({ ...data, type: productTypes.filter(type => type.name === e)[0] })} value={data.type.name} values={productTypes.map(type => type.name)} />
                         </div>
                         <div class="flex space-x-5">
-                            <SaveButton onClick={() => dispatch(addNewProduct(data))} />
+                            <SaveButton onClick={() => uploadData()} />
                         </div>
 
                     </div>

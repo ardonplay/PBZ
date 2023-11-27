@@ -2,6 +2,7 @@ package io.github.ardonplay.pbz.services;
 
 
 import io.github.ardonplay.pbz.model.dto.ProductDTO;
+import io.github.ardonplay.pbz.model.dto.ProductTypeDTO;
 import io.github.ardonplay.pbz.model.table.Product;
 import io.github.ardonplay.pbz.model.table.ProductType;
 import io.github.ardonplay.pbz.repository.table.ProductRepository;
@@ -21,7 +22,6 @@ import java.util.stream.Collectors;
 @AllArgsConstructor
 public class ProductService {
     private final ProductRepository repository;
-    private final ProductTypeRepository typeRepository;
     private final ModelMapper modelMapper;
 
     public List<ProductDTO> getAllProducts() {
@@ -32,7 +32,7 @@ public class ProductService {
                         new ProductDTO(
                                 product.getId(),
                                 product.getName(),
-                                product.getProductType().getType()))
+                                new ProductTypeDTO(product.getProductType().getId(), product.getProductType().getName())))
                 .collect(Collectors.toList());
     }
 
@@ -40,23 +40,20 @@ public class ProductService {
         return modelMapper.map(repository.findById(id).orElseThrow(NoSuchElementException::new), ProductDTO.class);
     }
 
-    public ProductDTO insertProduct(ProductDTO dto) throws DataIntegrityViolationException{
-        ProductType type = typeRepository.findByType(dto.getType());
-
+    public ProductDTO insertProduct(ProductDTO dto) throws DataIntegrityViolationException {
         Product product = modelMapper.map(dto, Product.class);
-        product.setProductType(type);
         product = repository.save(product);
         return modelMapper.map(product, ProductDTO.class);
     }
 
-    public ProductDTO updateProduct(ProductDTO dto){
+    public ProductDTO updateProduct(ProductDTO dto) {
         Product product = repository.findById(dto.getId()).orElseThrow(NoSuchElementException::new);
         modelMapper.map(dto, product);
         product = repository.save(product);
         return modelMapper.map(product, ProductDTO.class);
     }
 
-    public void deleteProduct(ProductDTO dto){
+    public void deleteProduct(ProductDTO dto) {
         repository.deleteById(dto.getId());
     }
 }

@@ -10,5 +10,5 @@ import java.math.BigDecimal;
 public class ProductDTO {
     private Integer id;
     private String name;
-    private String type;
+    private ProductTypeDTO type;
 }

@@ -1,7 +1,7 @@
 SET datestyle TO 'ISO, DMY';
 CREATE TABLE "product_type"(
     "id" SERIAL PRIMARY KEY,
-    "type" VARCHAR NOT NULL UNIQUE
+    "name" VARCHAR NOT NULL UNIQUE
 );
 
 CREATE TYPE "person_type" AS ENUM ( 'INDIVIDUAL', 'LEGAL' );
@@ -94,7 +94,7 @@ $$ LANGUAGE plpgsql;
 
 
 
-INSERT INTO "product_type" ("type") VALUES
+INSERT INTO "product_type" ("name") VALUES
 ('INDUSTRIAL'),
 ('HOUSEHOLD'),
 ('COMMERCE');

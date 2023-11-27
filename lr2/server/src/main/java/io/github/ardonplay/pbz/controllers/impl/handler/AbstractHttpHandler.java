@@ -104,7 +104,7 @@ public abstract class AbstractHttpHandler implements HttpHandler {
                 exchange.getResponseHeaders().putAll(responseEntity.getHeaders());
             }
             exchange.getResponseHeaders().put("Access-Control-Allow-Origin", Collections.singletonList("*"));
-            exchange.getResponseHeaders().put("Access-Control-Allow-Methods", Collections.singletonList("POST, PATCH, GET, PUT"));
+            exchange.getResponseHeaders().put("Access-Control-Allow-Methods", Collections.singletonList("HEAD, DELETE, OPTIONS, POST, PATCH, GET, PUT"));
             exchange.getResponseHeaders().put("Access-Control-Allow-Headers", Collections.singletonList("X-PINGOTHER, Content-Type"));
             byte[] bytes = new byte[0];
 
