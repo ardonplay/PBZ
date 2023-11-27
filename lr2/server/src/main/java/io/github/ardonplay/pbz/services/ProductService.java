@@ -11,6 +11,8 @@ import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -24,9 +26,10 @@ public class ProductService {
     private final ProductRepository repository;
     private final ModelMapper modelMapper;
 
-    public List<ProductDTO> getAllProducts() {
+    public List<ProductDTO> getAllProducts(int pageNumber, int pageSize) {
+        Pageable pageable = PageRequest.of(pageNumber, pageSize);
         return repository
-                .findAll()
+                .findAll(pageable)
                 .stream()
                 .map(product ->
                         new ProductDTO(
@@ -34,6 +37,10 @@ public class ProductService {
                                 product.getName(),
                                 new ProductTypeDTO(product.getProductType().getId(), product.getProductType().getName())))
                 .collect(Collectors.toList());
+    }
+
+    public Long getCount() {
+        return repository.count();
     }
 
     public ProductDTO getProductById(int id) {

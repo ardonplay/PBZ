@@ -1,13 +1,14 @@
-package io.github.ardonplay.pbz.controllers.impl;
+package io.github.ardonplay.pbz.controllers;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sun.net.httpserver.HttpExchange;
-import io.github.ardonplay.pbz.controllers.HttpController;
-import io.github.ardonplay.pbz.controllers.impl.handler.AbstractHttpHandler;
-import io.github.ardonplay.pbz.exceptions.BadRequestException;
-import io.github.ardonplay.pbz.exceptions.NetworkException;
+import io.github.ardonplay.pbz.server.utils.controller.HttpController;
+import io.github.ardonplay.pbz.server.utils.AbstractHttpHandler;
+import io.github.ardonplay.pbz.server.exceptions.BadRequestException;
+import io.github.ardonplay.pbz.server.exceptions.NetworkException;
+import io.github.ardonplay.pbz.server.utils.models.Wrapper;
 import io.github.ardonplay.pbz.model.dto.WaybillDTO;
-import io.github.ardonplay.pbz.model.ResponseEntity;
+import io.github.ardonplay.pbz.server.utils.models.ResponseEntity;
 import io.github.ardonplay.pbz.services.WaybillService;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Controller;
@@ -22,6 +23,7 @@ public class WaybillController implements HttpController {
     private final ObjectMapper objectMapper;
 
     private final WaybillService service;
+    private final int pageSize = 3;
 
     @Override
     public String getPath() {
@@ -37,19 +39,22 @@ public class WaybillController implements HttpController {
             @Override
             public ResponseEntity getRequest(HttpExchange exchange) {
 
-                Map<String, String> requestParams = getRequestParams(exchange);
-
                 if (requestParams.isEmpty()) {
-                    return new ResponseEntity(service.getAllWaybills());
+                    return new ResponseEntity(new Wrapper(Collections.singletonList(service.getAllWaybills(0, pageSize)), service.getCount()));
+                } else if (requestParams.containsKey("count") || requestParams.containsKey("page")) {
+
+                    int count = requestParams.getIntValue("count", pageSize);
+                    int page = requestParams.getIntValue("page", 0);
+
+                    return new ResponseEntity(new Wrapper(Collections.singletonList(service.getAllWaybills(page, count)), service.getCount()));
+
                 } else if (requestParams.containsKey("id")) {
-                    if (!requestParams.get("id").matches("-?\\d+")) {
-                        throw new BadRequestException();
-                    }
-                    return new ResponseEntity(service.getWaybillById(Integer.parseInt(requestParams.get("id"))));
+                    return new ResponseEntity(service.getWaybillById(requestParams.getIntValue("id")));
                 }
                 throw new BadRequestException();
 
             }
+
 
             @Override
             public ResponseEntity postRequest(HttpExchange exchange) {
@@ -79,8 +84,7 @@ public class WaybillController implements HttpController {
                     WaybillDTO waybillDTO = objectMapper.readValue(readBody(exchange), WaybillDTO.class);
 
                     service.deleteWaybill(waybillDTO);
-                    return new ResponseEntity("OK");
-
+                    return new ResponseEntity(waybillDTO);
                 } catch (IOException e) {
                     throw new NetworkException();
                 }

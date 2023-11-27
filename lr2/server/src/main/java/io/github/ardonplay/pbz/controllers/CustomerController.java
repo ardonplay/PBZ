@@ -1,13 +1,14 @@
-package io.github.ardonplay.pbz.controllers.impl;
+package io.github.ardonplay.pbz.controllers;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sun.net.httpserver.HttpExchange;
-import io.github.ardonplay.pbz.controllers.HttpController;
-import io.github.ardonplay.pbz.controllers.impl.handler.AbstractHttpHandler;
-import io.github.ardonplay.pbz.exceptions.BadRequestException;
-import io.github.ardonplay.pbz.exceptions.NetworkException;
+import io.github.ardonplay.pbz.server.utils.controller.HttpController;
+import io.github.ardonplay.pbz.server.utils.AbstractHttpHandler;
+import io.github.ardonplay.pbz.server.exceptions.BadRequestException;
+import io.github.ardonplay.pbz.server.exceptions.NetworkException;
 import io.github.ardonplay.pbz.model.dto.CustomerDTO;
-import io.github.ardonplay.pbz.model.ResponseEntity;
+import io.github.ardonplay.pbz.server.utils.models.ResponseEntity;
+import io.github.ardonplay.pbz.server.utils.models.Wrapper;
 import io.github.ardonplay.pbz.services.CustomerService;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -24,6 +25,8 @@ public class CustomerController implements HttpController {
 
     private final ObjectMapper objectMapper;
 
+    private final int pageSize = 3;
+
     @Override
     public String getPath() {
         return "/api/v1/customers";
@@ -36,16 +39,25 @@ public class CustomerController implements HttpController {
 
             @Override
             public ResponseEntity getRequest(HttpExchange exchange) {
-
-                Map<String, String> requestParams = getRequestParams(exchange);
-
                 if (requestParams.isEmpty()) {
-                    return new ResponseEntity(service.getAllCustomers());
+                    return new ResponseEntity(
+                            new Wrapper(
+                                    Collections.singletonList(service.getAllCustomers(0, pageSize)),
+                                    service.getCount()));
+                }
+                if (requestParams.containsKey("count") || requestParams.containsKey("page")) {
+
+                    int count = requestParams.getIntValue("count", pageSize);
+                    int page = requestParams.getIntValue("page", 0);
+
+                    return new ResponseEntity(new Wrapper(Collections.singletonList(
+                            service.getAllCustomers(page, count)), service.getCount()));
+
                 }
                 if (requestParams.containsKey("id")) {
                     if (requestParams.get("id").matches("^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$")) {
-                        return new ResponseEntity(
-                                service.getCustomerById(UUID.fromString(requestParams.get("id"))));
+                        return new ResponseEntity(new Wrapper(
+                                List.of(service.getCustomerById(UUID.fromString(requestParams.get("id")))), service.getCount()));
                     }
                 }
                 throw new BadRequestException();
@@ -76,7 +88,7 @@ public class CustomerController implements HttpController {
                 try {
                     CustomerDTO customerDTO = objectMapper.readValue(readBody(exchange), CustomerDTO.class);
                     service.deleteCustomerById(customerDTO);
-                    return new ResponseEntity(200);
+                    return new ResponseEntity(customerDTO);
                 } catch (IOException e) {
                     throw new NetworkException();
                 }

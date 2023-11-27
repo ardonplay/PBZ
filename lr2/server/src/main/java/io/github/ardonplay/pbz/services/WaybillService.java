@@ -7,6 +7,8 @@ import io.github.ardonplay.pbz.repository.table.WaybillRepository;
 import lombok.AllArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -20,9 +22,13 @@ public class WaybillService {
 
     private final ModelMapper modelMapper;
 
-    public List<WaybillDTO> getAllWaybills() {
+    public Long getCount() {
+        return repository.count();
+    }
+    public List<WaybillDTO> getAllWaybills(int pageNumber, int pageSize) {
+        Pageable pageable = PageRequest.of(pageNumber, pageSize);
         return repository
-                .findAll()
+                .findAll(pageable)
                 .stream()
                 .map(waybill ->
                         new WaybillDTO(

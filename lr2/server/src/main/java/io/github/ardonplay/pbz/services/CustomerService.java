@@ -5,6 +5,8 @@ import io.github.ardonplay.pbz.model.table.Customer;
 import io.github.ardonplay.pbz.repository.table.CustomerRepository;
 import lombok.AllArgsConstructor;
 import org.modelmapper.ModelMapper;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -20,13 +22,18 @@ public class CustomerService {
     private final ModelMapper modelMapper;
 
 
-    public List<CustomerDTO> getAllCustomers() {
+    public List<CustomerDTO> getAllCustomers(int pageNumber, int pageSize) {
+        Pageable pageable = PageRequest.of(pageNumber, pageSize);
         return repository
-                .findAll()
+                .findAll(pageable)
                 .stream()
                 .map(customer ->
                         new CustomerDTO(customer.getId(), customer.getName(), customer.getType()))
                 .collect(Collectors.toList());
+    }
+
+    public Long getCount() {
+        return repository.count();
     }
 
     public CustomerDTO getCustomerById(UUID uuid) {

@@ -1,12 +1,13 @@
-package io.github.ardonplay.pbz.controllers.impl.handler;
+package io.github.ardonplay.pbz.server.utils;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
-import io.github.ardonplay.pbz.exceptions.BadRequestException;
-import io.github.ardonplay.pbz.exceptions.NetworkException;
-import io.github.ardonplay.pbz.model.ResponseEntity;
+import io.github.ardonplay.pbz.server.utils.models.RequestParams;
+import io.github.ardonplay.pbz.server.utils.models.ResponseEntity;
+import io.github.ardonplay.pbz.server.exceptions.BadRequestException;
+import io.github.ardonplay.pbz.server.exceptions.NetworkException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
@@ -23,10 +24,13 @@ import java.util.function.Supplier;
 public abstract class AbstractHttpHandler implements HttpHandler {
     protected final Map<String, Supplier<ResponseEntity>> requestHandlers = new HashMap<>();
     protected int buffSize = 1000;
+
+    protected final RequestParams requestParams;
     private final ObjectMapper mapper;
 
     protected AbstractHttpHandler(ObjectMapper mapper) {
         this.mapper = mapper;
+        this.requestParams = new RequestParams();
     }
 
     @Override
@@ -39,6 +43,8 @@ public abstract class AbstractHttpHandler implements HttpHandler {
         addRequestHandler("PUT", () -> putRequest(exchange));
         addRequestHandler("DELETE", () -> deleteRequest(exchange));
         addRequestHandler("PATCH", () -> patchRequest(exchange));
+
+        requestParams.setValues(exchange);
 
         ResponseEntity response;
 
@@ -124,23 +130,6 @@ public abstract class AbstractHttpHandler implements HttpHandler {
         } catch (IOException e) {
             log.error("Error writing response: " + e.getMessage());
         }
-    }
-
-    protected Map<String, String> getRequestParams(HttpExchange exchange) {
-        String query = exchange.getRequestURI().getQuery();
-
-        Map<String, String> result = new HashMap<>();
-        if(query != null) {
-            for (String param : query.split("&")) {
-                String[] entry = param.split("=");
-                if (entry.length > 1) {
-                    result.put(entry[0], entry[1]);
-                } else {
-                    result.put(entry[0], "");
-                }
-            }
-        }
-        return result;
     }
 
     protected void write(OutputStream writtable, InputStream readable, long length) throws IOException {

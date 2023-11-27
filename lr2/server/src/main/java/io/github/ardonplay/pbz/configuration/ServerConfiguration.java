@@ -1,7 +1,7 @@
 package io.github.ardonplay.pbz.configuration;
 
 import com.sun.net.httpserver.HttpServer;
-import io.github.ardonplay.pbz.controllers.HttpController;
+import io.github.ardonplay.pbz.server.utils.controller.HttpController;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
