@@ -63,25 +63,50 @@ CREATE TABLE
     );
 
 
-CREATE VIEW waybil_prices AS
-SELECT waybil_id AS id, SUM(price) AS total_price
-FROM waybil_products
-GROUP BY waybil_id;
+CREATE VIEW max_waybills_per_date AS
+WITH WaybilPrices AS (
+    SELECT
+        wp.waybil_id AS id,
+        wb.date AS waybill_date,
+        wb.customer_id AS customer_id,
+        SUM(wp.price) AS total_price
+    FROM
+        waybil_products wp
+    JOIN
+        waybills wb ON wp.waybil_id = wb.id
+    GROUP BY
+        wp.waybil_id, wb.date, wb.customer_id
+),
+MaxTotalPricePerDate AS (
+    SELECT
+        wp.waybill_date,
+        MAX(wp.total_price) AS max_total_price
+    FROM
+        WaybilPrices wp
+    GROUP BY
+        wp.waybill_date
+)SELECT
+    wp.id,
+    wp.customer_id,
+    wp.waybill_date,
+    wp.total_price
+FROM
+    WaybilPrices wp
+JOIN
+    MaxTotalPricePerDate mtp ON wp.waybill_date = mtp.waybill_date AND wp.total_price = mtp.max_total_price;
+
+
+
 
 CREATE OR REPLACE FUNCTION find_price_by_product_id(product_id integer, start_date date, end_date date) 
 RETURNS TABLE (
     "Название товара" varchar,
     "Дата" date,
-    "waybil_id" integer,
-    "Общее количество" bigint,
-    "Общая стоимость" numeric,
     "Цена за единицу" numeric
 ) AS $$
 BEGIN
     RETURN QUERY
-    SELECT p.name AS "Название товара", w.date AS "Дата", wp.waybil_id, 
-           SUM(wp.quantity) AS "Общее количество", 
-           SUM(wp.price) AS "Общая стоимость", 
+    SELECT p.name AS "Название товара", w.date AS "Дата", 
            SUM(wp.price) / SUM(wp.quantity) AS "Цена за единицу"
     FROM waybil_products wp
     JOIN waybills w ON wp.waybil_id = w.id
@@ -127,11 +152,243 @@ INSERT INTO "destinations" ("name", "region", "country") VALUES
 INSERT INTO "waybills" ("date", "customer_id", "destination") VALUES
 ('27/10/2023', (SELECT customers.id FROM "customers" LIMIT 1 OFFSET 0),1),
 ('25/10/2023', (SELECT customers.id FROM "customers" LIMIT 1 OFFSET 1),1),
-('30/08/2023',(SELECT customers.id FROM "customers" LIMIT 1 OFFSET 2),1);
+('30/08/2023',(SELECT customers.id FROM "customers" LIMIT 1 OFFSET 2),1),
+('30/08/2023',(SELECT customers.id FROM "customers" LIMIT 1 OFFSET 0),1);;
 
 
 INSERT INTO "waybil_products" ("product_id", "waybil_id", "quantity",
   "price") VALUES
 (1, 1, 10, 1553),
 (2, 2, 2, 703),
-(3,3, 5, 586);
+(3,3, 5, 586),
+(3,4,1000, 4000);
+
+
+
+
+
+-- LOGGING
+CREATE TABLE log_table (
+    id SERIAL PRIMARY KEY,
+    table_name VARCHAR NOT NULL,
+    action VARCHAR NOT NULL,
+    row_id VARCHAR,
+    timestamp TIMESTAMP NOT NULL
+);
+
+CREATE OR REPLACE FUNCTION logger()
+RETURNS TRIGGER AS $$
+BEGIN
+    IF TG_OP = 'INSERT' THEN
+        INSERT INTO log_table (table_name, action, row_id, timestamp)
+        VALUES (TG_TABLE_NAME, 'INSERT', NEW.id::VARCHAR, NOW());
+    ELSIF TG_OP = 'UPDATE' THEN
+        INSERT INTO log_table (table_name, action, row_id, timestamp)
+        VALUES (TG_TABLE_NAME, 'UPDATE', NEW.id::VARCHAR, NOW());
+    ELSIF TG_OP = 'DELETE' THEN
+        INSERT INTO log_table (table_name, action, row_id, timestamp)
+        VALUES (TG_TABLE_NAME, 'DELETE',  OLD.id::VARCHAR, NOW());
+    END IF;
+    RETURN NULL;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER product_type_trigger
+AFTER INSERT OR UPDATE OR DELETE ON "product_type"
+FOR EACH ROW EXECUTE FUNCTION logger();
+
+
+CREATE TRIGGER products_trigger
+AFTER INSERT OR UPDATE OR DELETE ON "products"
+FOR EACH ROW EXECUTE FUNCTION logger();
+
+
+CREATE TRIGGER products_trigger
+AFTER INSERT OR UPDATE OR DELETE ON "customers"
+FOR EACH ROW EXECUTE FUNCTION logger();
+
+CREATE TRIGGER products_trigger
+AFTER INSERT OR UPDATE OR DELETE ON "bank_details"
+FOR EACH ROW EXECUTE FUNCTION logger();
+
+CREATE TRIGGER products_trigger
+AFTER INSERT OR UPDATE OR DELETE ON "destinations"
+FOR EACH ROW EXECUTE FUNCTION logger();
+
+CREATE TRIGGER products_trigger
+AFTER INSERT OR UPDATE OR DELETE ON "waybills"
+FOR EACH ROW EXECUTE FUNCTION logger();
+
+CREATE TRIGGER products_trigger
+AFTER INSERT OR UPDATE OR DELETE ON "waybil_products"
+FOR EACH ROW EXECUTE FUNCTION logger();
+
+
+
+CREATE OR REPLACE PROCEDURE add_product(
+    IN product_name VARCHAR,
+    IN product_type_name VARCHAR
+)
+LANGUAGE plpgsql
+AS $$
+DECLARE
+    product_type_id INTEGER;
+BEGIN
+    -- Вставить новый тип продукта, если его еще нет
+    INSERT INTO product_type(name)
+    VALUES (product_type_name)
+    ON CONFLICT (name) DO NOTHING;
+
+    -- Получить или обновить идентификатор существующего типа продукта
+    SELECT id INTO product_type_id FROM product_type WHERE name = product_type_name;
+
+    -- Вставить новый продукт
+    INSERT INTO products(name, type)
+    VALUES (product_name, product_type_id);
+    
+EXCEPTION
+    WHEN OTHERS THEN
+        RAISE;
+END;
+$$;
+
+
+CREATE OR REPLACE PROCEDURE delete_product(
+    IN product_name VARCHAR
+)
+LANGUAGE plpgsql
+AS $$
+BEGIN
+    -- Удалить продукт по имени
+    DELETE FROM products
+    WHERE name = product_name;
+
+EXCEPTION
+    -- В случае ошибки, PostgreSQL автоматически откатит транзакцию
+    WHEN OTHERS THEN
+        RAISE;
+END;
+$$;
+
+CREATE OR REPLACE PROCEDURE update_product(
+    IN product_id INTEGER,
+    IN new_product_name VARCHAR,
+    IN product_type_name VARCHAR
+)
+LANGUAGE plpgsql
+AS $$
+DECLARE
+    new_product_type_id INTEGER;
+BEGIN
+
+    INSERT INTO product_type(name)
+    VALUES (product_type_name)
+    ON CONFLICT (name) DO NOTHING;
+
+    SELECT id INTO new_product_type_id FROM product_type WHERE name = product_type_name;
+
+    -- Обновить информацию о продукте
+    UPDATE products
+    SET name = new_product_name, type = new_product_type_id
+    WHERE id = old_product_id;
+
+EXCEPTION
+    WHEN OTHERS THEN
+        RAISE;
+END;
+$$;
+
+
+
+
+CREATE OR REPLACE PROCEDURE add_new_waybill(
+    IN customer_id UUID,
+    IN date_param DATE,
+    IN destination_id INTEGER,
+    IN products_data JSONB
+)
+LANGUAGE plpgsql
+AS $$
+DECLARE
+    waybill_id INTEGER;
+    product_info JSONB;
+    product_id INTEGER;
+BEGIN
+    -- Вставить новую накладную
+    INSERT INTO waybills(customer_id, date, destination)
+    VALUES (customer_id, date_param, destination_id)
+    RETURNING id INTO waybill_id;
+
+    -- Вставить продукты в накладную
+    FOR product_info IN SELECT * FROM jsonb_array_elements(products_data)
+    LOOP
+        -- Получить или обновить идентификатор существующего продукта
+        SELECT id INTO product_id FROM products WHERE name = product_info->>'name';
+
+        -- Вставить продукт в накладную
+        INSERT INTO waybil_products(product_id, waybil_id, quantity, price)
+        VALUES (product_id, waybill_id, (product_info->>'quantity')::INTEGER, (product_info->>'price')::DECIMAL(18,2));
+    END LOOP;
+EXCEPTION
+    -- В случае ошибки откатить транзакцию
+    WHEN OTHERS THEN
+        ROLLBACK;
+        RAISE;
+END;
+$$;
+
+
+CREATE OR REPLACE PROCEDURE update_waybill(
+    IN waybill_id INTEGER,
+    IN waybill_customer_id UUID,
+    IN date_param DATE,
+    IN destination_id INTEGER,
+    IN products_data JSONB
+)
+LANGUAGE plpgsql
+AS $$
+DECLARE
+    product_info JSONB;
+    product_id INTEGER;
+BEGIN
+    -- Обновить информацию о накладной
+    UPDATE waybills
+    SET customer_id = waybill_customer_id, date = date_param, destination = destination_id
+    WHERE id = waybill_id;
+
+    -- Удалить старые продукты из накладной
+    DELETE FROM waybil_products WHERE waybil_id = waybill_id;
+
+    -- Вставить новые продукты в накладную
+    FOR product_info IN SELECT * FROM jsonb_array_elements(products_data)
+    LOOP
+        -- Получить или обновить идентификатор существующего продукта
+        SELECT id INTO product_id FROM products WHERE name = product_info->>'name';
+
+        -- Вставить продукт в накладную
+        INSERT INTO waybil_products(product_id, waybil_id, quantity, price)
+        VALUES (product_id, waybill_id, (product_info->>'quantity')::INTEGER, (product_info->>'price')::DECIMAL(18,2));
+    END LOOP;
+END;
+$$;
+
+CREATE OR REPLACE PROCEDURE delete_waybill(
+    IN waybill_id INTEGER
+)
+LANGUAGE plpgsql
+AS $$
+BEGIN
+    -- Удалить продукт по имени
+    DELETE FROM waybills
+    WHERE id = waybill_id;
+
+EXCEPTION
+    -- В случае ошибки, PostgreSQL автоматически откатит транзакцию
+    WHEN OTHERS THEN
+        RAISE;
+END;
+$$;
+
+
+
+
