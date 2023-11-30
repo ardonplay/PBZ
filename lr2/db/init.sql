@@ -6,6 +6,7 @@ CREATE TABLE "product_type"(
 
 CREATE TYPE "person_type" AS ENUM ( 'INDIVIDUAL', 'LEGAL' );
 
+CREATE CAST (character varying AS public.person_type) WITH INOUT AS ASSIGNMENT;
 
 CREATE TABLE
     "products" (
@@ -46,8 +47,8 @@ CREATE TABLE
         "customer_id" uuid NOT NULL,
         "date" date NOT NULL,
         "destination" integer NOT NULL,
-        FOREIGN KEY ("customer_id") REFERENCES "customers" ("id") ON DELETE CASCADE,
-        FOREIGN KEY ("destination") REFERENCES "destinations" ("id") ON DELETE CASCADE
+        FOREIGN KEY ("customer_id") REFERENCES "customers" ("id") ON DELETE CASCADE ON UPDATE CASCADE,
+        FOREIGN KEY ("destination") REFERENCES "destinations" ("id") ON DELETE CASCADE ON UPDATE CASCADE
     );
 
 CREATE TABLE
@@ -57,8 +58,8 @@ CREATE TABLE
         "waybil_id" integer NOT NULL,
         "quantity" integer NOT NULL,
         "price" decimal(18,2) NOT NULL,
-        FOREIGN KEY ("product_id") REFERENCES "products" ("id") ON DELETE CASCADE,
-        FOREIGN KEY ("waybil_id") REFERENCES "waybills" ("id") ON DELETE CASCADE
+        FOREIGN KEY ("product_id") REFERENCES "products" ("id") ON DELETE CASCADE ON UPDATE CASCADE,
+        FOREIGN KEY ("waybil_id") REFERENCES "waybills" ("id") ON DELETE CASCADE ON UPDATE CASCADE
     );
 
 
@@ -118,7 +119,8 @@ VALUES  ((SELECT customers.id FROM "customers" LIMIT 1 OFFSET 0), '1234567890', 
 
 
 INSERT INTO "destinations" ("name", "region", "country") VALUES
-('Минск', 'Минск', 'Беларусь');
+('Минск', 'Минск', 'Беларусь'),
+('Брест', 'Брестская', 'Беларусь');
 
 
 

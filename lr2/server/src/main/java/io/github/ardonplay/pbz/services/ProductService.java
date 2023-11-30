@@ -14,6 +14,7 @@ import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.NoSuchElementException;
@@ -49,6 +50,7 @@ public class ProductService {
 
     public ProductDTO insertProduct(ProductDTO dto) throws DataIntegrityViolationException {
         Product product = modelMapper.map(dto, Product.class);
+        System.out.println(product.getProductType());
         product = repository.save(product);
         return modelMapper.map(product, ProductDTO.class);
     }

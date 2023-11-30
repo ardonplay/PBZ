@@ -23,7 +23,7 @@ public class WaybillController implements HttpController {
     private final ObjectMapper objectMapper;
 
     private final WaybillService service;
-    private final int pageSize = 3;
+    private final int pageSize = 100;
 
     @Override
     public String getPath() {
@@ -40,13 +40,13 @@ public class WaybillController implements HttpController {
             public ResponseEntity getRequest(HttpExchange exchange) {
 
                 if (requestParams.isEmpty()) {
-                    return new ResponseEntity(new Wrapper(Collections.singletonList(service.getAllWaybills(0, pageSize)), service.getCount()));
+                    return new ResponseEntity(new Wrapper(service.getAllWaybills(0, pageSize), service.getCount()));
                 } else if (requestParams.containsKey("count") || requestParams.containsKey("page")) {
 
                     int count = requestParams.getIntValue("count", pageSize);
                     int page = requestParams.getIntValue("page", 0);
 
-                    return new ResponseEntity(new Wrapper(Collections.singletonList(service.getAllWaybills(page, count)), service.getCount()));
+                    return new ResponseEntity(new Wrapper(service.getAllWaybills(page, count), service.getCount()));
 
                 } else if (requestParams.containsKey("id")) {
                     return new ResponseEntity(service.getWaybillById(requestParams.getIntValue("id")));
@@ -63,6 +63,7 @@ public class WaybillController implements HttpController {
                     WaybillDTO waybillDTO = objectMapper.readValue(readBody(exchange), WaybillDTO.class);
                     return new ResponseEntity(service.insertWaybill(waybillDTO));
                 } catch (IOException e) {
+                    e.printStackTrace();
                     throw new RuntimeException();
                 }
             }
@@ -90,8 +91,6 @@ public class WaybillController implements HttpController {
                 }
             }
 
-        }
-
-                ;
+        };
     }
 }

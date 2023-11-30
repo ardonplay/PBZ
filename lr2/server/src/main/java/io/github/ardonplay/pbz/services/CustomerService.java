@@ -8,6 +8,7 @@ import org.modelmapper.ModelMapper;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.NoSuchElementException;
@@ -21,7 +22,7 @@ public class CustomerService {
 
     private final ModelMapper modelMapper;
 
-
+    
     public List<CustomerDTO> getAllCustomers(int pageNumber, int pageSize) {
         Pageable pageable = PageRequest.of(pageNumber, pageSize);
         return repository
@@ -31,11 +32,11 @@ public class CustomerService {
                         new CustomerDTO(customer.getId(), customer.getName(), customer.getType()))
                 .collect(Collectors.toList());
     }
-
+    
     public Long getCount() {
         return repository.count();
     }
-
+    
     public CustomerDTO getCustomerById(UUID uuid) {
         return repository
                 .findById(uuid)
@@ -43,13 +44,13 @@ public class CustomerService {
                         modelMapper.map(customer, CustomerDTO.class))
                 .orElseThrow(NoSuchElementException::new);
     }
-
+   
     public CustomerDTO insertCustomer(CustomerDTO dto) {
         Customer customer = modelMapper.map(dto, Customer.class);
         customer = repository.save(customer);
         return modelMapper.map(customer, CustomerDTO.class);
     }
-
+    
     public CustomerDTO updateCustomer(CustomerDTO dto){
         Customer customer = repository.findById(dto.getId()).orElseThrow(NoSuchElementException::new);
         modelMapper.map(dto, customer);

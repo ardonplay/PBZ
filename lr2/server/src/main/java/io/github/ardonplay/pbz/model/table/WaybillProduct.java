@@ -6,13 +6,14 @@ import lombok.*;
 import org.hibernate.annotations.Type;
 
 import java.math.BigDecimal;
+import java.util.Objects;
 
 @Entity
 @Table(name = "waybil_products")
-@Data
+@Getter
+@Setter
 @NoArgsConstructor
 @RequiredArgsConstructor
-@JsonIgnoreProperties(ignoreUnknown = true)
 public class WaybillProduct {
     @Id
     @Column(name = "id")
@@ -27,13 +28,24 @@ public class WaybillProduct {
     @Column(name = "price", precision = 18, scale = 2)
     private BigDecimal price;
 
-    @ManyToOne(cascade = {CascadeType.PERSIST, CascadeType.MERGE})
+    @ManyToOne()
     @JoinColumn(name = "product_id", referencedColumnName = "id")
     private Product product;
 
-    @ManyToOne(cascade = {CascadeType.PERSIST, CascadeType.MERGE})
+    @ManyToOne()
     @JoinColumn(name = "waybil_id", referencedColumnName = "id")
     private Waybill waybill;
 
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        WaybillProduct that = (WaybillProduct) o;
+        return Objects.equals(id, that.id) && Objects.equals(count, that.count) && Objects.equals(price, that.price) && Objects.equals(product, that.product) && Objects.equals(waybill, that.waybill);
+    }
 
+    @Override
+    public int hashCode() {
+        return Objects.hash(id, count, price, product, waybill);
+    }
 }

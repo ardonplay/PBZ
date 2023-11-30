@@ -10,13 +10,13 @@ import java.util.List;
 @Table(name = "product_type")
 @RequiredArgsConstructor
 @NoArgsConstructor
-@Data
-@JsonIgnoreProperties(ignoreUnknown = true)
+@Getter
+@Setter
 public class ProductType {
     @Id
     @Column(name = "id")
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private int id;
+    private Integer id;
 
     @NonNull
     @Column(name = "name")

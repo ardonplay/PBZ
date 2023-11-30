@@ -20,7 +20,7 @@ public class ProductTypeController implements HttpController {
     private final ObjectMapper objectMapper;
 
     private final ProductTypeService service;
-    private final int pageSize = 3;
+    private final int pageSize = 100;
 
     @Override
     public String getPath() {
@@ -33,14 +33,14 @@ public class ProductTypeController implements HttpController {
             @Override
             protected ResponseEntity getRequest(HttpExchange exchange) {
                 if (requestParams.isEmpty()) {
-                    return new ResponseEntity(new Wrapper(Collections.singletonList(service.getAllTypes(0, pageSize)), service.getCount()));
+                    return new ResponseEntity(new Wrapper(service.getAllTypes(0, pageSize), service.getCount()));
 
                 } else if (requestParams.containsKey("count") || requestParams.containsKey("page")) {
 
                     int count = requestParams.getIntValue("count", pageSize);
                     int page = requestParams.getIntValue("page", 0);
 
-                    return new ResponseEntity(new Wrapper(Collections.singletonList(service.getAllTypes(page, count)), service.getCount()));
+                    return new ResponseEntity(new Wrapper(service.getAllTypes(page, count), service.getCount()));
 
                 }
                 throw new BadRequestException();

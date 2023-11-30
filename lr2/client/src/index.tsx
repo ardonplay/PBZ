@@ -9,10 +9,10 @@ import Products from './pages/Products/index.js';
 import Customers from './pages/Customers/index.js';
 import Waybills from './pages/Waybills/index.js';
 import Destinations from './pages/Destinations/index.js';
-import { Provider } from 'react-redux';
-import store from './slices/index.js';
+import { Provider, useSelector } from 'react-redux';
+import store from './slices/store';
 
-export function App() {
+const App = () => {
 	return (
 		<LocationProvider>
 			<div class="home flex flex-row justify-start ">
@@ -29,13 +29,15 @@ export function App() {
 				</div>
 			</div>
 		</LocationProvider>
-	);
+	)
 }
 
+
 render(
+
 	<Provider store={store}>
 		<App />
-
 	</Provider>
+
 
 	, document.getElementById('app'));

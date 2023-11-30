@@ -52,10 +52,11 @@ public abstract class AbstractHttpHandler implements HttpHandler {
             response = this.requestHandlers.computeIfAbsent(exchange.getRequestMethod(), key -> ResponseEntity::new).get();
         }
         catch (NetworkException e){
-            log.warn("Connection lost!");
+            e.printStackTrace();
             response = new ResponseEntity(500, "Connection lost!");
         }
         catch (NoSuchElementException e){
+            e.printStackTrace();
             log.warn(e.getLocalizedMessage());
             response = new ResponseEntity(404);
         }
@@ -64,7 +65,7 @@ public abstract class AbstractHttpHandler implements HttpHandler {
             response = new ResponseEntity(400);
         }
         catch (RuntimeException e){
-            log.warn(e.getLocalizedMessage());
+            e.printStackTrace();
             response = new ResponseEntity(500);
         }
         uploadResponceEntity(exchange, response);

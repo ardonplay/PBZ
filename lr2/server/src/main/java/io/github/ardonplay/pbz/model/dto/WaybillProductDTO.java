@@ -6,6 +6,7 @@ import java.math.BigDecimal;
 
 @Data
 public class WaybillProductDTO {
+    private Integer id;
     private Integer count;
     private BigDecimal price;
     private ProductDTO product;

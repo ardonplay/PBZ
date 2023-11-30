@@ -1,26 +1,23 @@
 package io.github.ardonplay.pbz.model.table;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.Setter;
 
-import java.util.Date;
-import java.util.List;
+import java.util.*;
 
 @Entity
 @Table(name = "waybills")
 @Getter
 @Setter
-@JsonIgnoreProperties(ignoreUnknown = true)
 public class Waybill {
     @Id
     @Column(name = "id")
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private int id;
+    private Integer id;
 
-    @ManyToOne(cascade = {CascadeType.PERSIST, CascadeType.MERGE})
+    @ManyToOne(cascade = {CascadeType.MERGE})
     @JoinColumn(name = "customer_id", referencedColumnName = "id")
     private Customer customer;
 
@@ -28,10 +25,11 @@ public class Waybill {
     @Column(name = "date")
     private Date date;
 
-    @ManyToOne(cascade = {CascadeType.PERSIST, CascadeType.MERGE})
+    @ManyToOne(cascade = {CascadeType.MERGE})
     @JoinColumn(name = "destination", referencedColumnName = "id")
     private Destination destination;
 
-    @OneToMany(cascade = {CascadeType.PERSIST, CascadeType.MERGE}, mappedBy = "waybill")
-    private List<WaybillProduct> waybillProducts;
+    @OneToMany(cascade = {CascadeType.MERGE}, orphanRemoval = true, mappedBy = "waybill")
+    private Set<WaybillProduct> waybillProducts = new HashSet<>();
+
 }

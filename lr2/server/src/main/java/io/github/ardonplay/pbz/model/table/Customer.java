@@ -31,7 +31,7 @@ public class Customer {
 
     @Column(name = "adress")
     @NonNull
-    private String adress;
+    private String address;
 
     @Column(name = "phone_number")
     @NonNull
@@ -40,6 +40,6 @@ public class Customer {
     @OneToOne(cascade = {CascadeType.PERSIST, CascadeType.MERGE}, mappedBy = "customer")
     private BankDetails bankDetails;
 
-    @OneToMany(cascade = {CascadeType.PERSIST, CascadeType.MERGE}, mappedBy = "customer")
+    @OneToMany(mappedBy = "customer")
     private List<Waybill> waybills;
 }

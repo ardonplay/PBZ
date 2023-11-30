@@ -1,34 +1,23 @@
 import Modal from "../../Modal";
-import { setSelectedRow, productRow, setAddNewDialogOpen,addNewProduct, ProductThunkDispatch, productType } from '../../../../slices/productSlice';
-import { useSelector, useDispatch } from 'react-redux';
+import { setSelectedRow, productRow, setAddNewDialogOpen,addNewProduct, productType } from '../../../../slices/productSlice';
 import ProductCategories from "./components/ProductCategories";
 import ProductNameInput from "./components/ProductNameInput";
 import DialogCloseButton from "../../components/DialogCloseButton";
 import SaveButton from "../../components/SaveButton";
+import { useAppDispatch, useAppSelector } from "../../../../slices/hooks";
 
 export default function ProductAddModal() {
 
-    const dispatch = useDispatch();
+    const dispatch = useAppDispatch()
 
-    const data = useSelector((state) => state.products.selectedRow) as productRow;
+    const data = useAppSelector((state) => state.products.selectedRow) as productRow;
 
-    const productTypes = useSelector((state) => state.products.types) as productType[]
+    const productTypes = useAppSelector((state) => state.products.types) as productType[]
 
-    const dialogOpen = useSelector((state) => state.products.addNewDialogOpen) as boolean;
+    const dialogOpen = useAppSelector((state) => state.products.addNewDialogOpen) as boolean;
 
     const setData = (data: productRow) => {
         dispatch(setSelectedRow(data))
-    }
-
-    const uploadData = () =>{
-        fetch("http://localhost:8080/api/v1/products", {
-            method: "POST", headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(data)
-        })
-            .then(response => response.json()).then(data => {
-                dispatch(addNewProduct(data))
-                console.log(data)
-            })
     }
     return (
         <Modal open={dialogOpen} onClose={() => dispatch(setAddNewDialogOpen(false))}>
@@ -46,9 +35,8 @@ export default function ProductAddModal() {
                             <ProductCategories onChange={(e: string) => setData({ ...data, type: productTypes.filter(type => type.name === e)[0] })} value={data.type.name} values={productTypes.map(type => type.name)} />
                         </div>
                         <div class="flex space-x-5">
-                            <SaveButton onClick={() => uploadData()} />
+                            <SaveButton onClick={() => dispatch(addNewProduct(data))} />
                         </div>
-
                     </div>
                 </div>
             </div>

@@ -31,6 +31,6 @@ public class Destination {
     @Column(name = "country")
     private String country;
 
-    @OneToMany(cascade = {CascadeType.PERSIST, CascadeType.MERGE}, mappedBy = "destination")
+    @OneToMany(mappedBy = "destination")
     private List<Waybill> waybills;
 }

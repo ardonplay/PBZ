@@ -3,20 +3,18 @@ import ProductAddModal from "../../components/Modal/impl/Product/ProductAddModal
 import ProductEditModal from "../../components/Modal/impl/Product/ProductEditModal";
 import TableHead from "../../components/Table/TableHead";
 import TableRow from "../../components/Table/TableRow";
-import { setSelectedRow, productRow, setEditDialogOpen, setAddNewDialogOpen, setProducts, ProductThunkDispatch, getAllProducts, getProductTypes } from '../../slices/productSlice';
-import { useSelector, useDispatch } from 'react-redux';
+import { setSelectedRow, productRow, setEditDialogOpen, setAddNewDialogOpen, getAllProducts, getProductTypes } from '../../slices/productSlice';
+import { useAppDispatch, useAppSelector } from "../../slices/hooks";
 export default function Products() {
-    const dispatch = useDispatch();
+    const dispatch = useAppDispatch();
     
-    const thunkDispatch: ProductThunkDispatch = useDispatch();
-
 
     useEffect(() => {
-       thunkDispatch(getAllProducts())
-       thunkDispatch(getProductTypes())
+        dispatch(getAllProducts())
+        dispatch(getProductTypes())
     }, [])
 
-    const products = useSelector((state) => state.products.list) as productRow[]
+    const products = useAppSelector((state) => state.products.list) as productRow[]
 
    
     const openDialog = (id: number) => {
@@ -33,7 +31,7 @@ export default function Products() {
                     <table class="w-full text-sm text-left rtl:text-right text-gray-500 bg-slate-800">
                         <TableHead columns={["id", "Name", "Type", "Action"]} />
                         <tbody>
-                            {products.map((product, i) => <TableRow key={i} id={i} data={[product.id.toString(), product.name, product.type.name]} onEdit={openDialog} />)}
+                            {products.map((product, i) => <TableRow key={i} id={i} data={[product.id.toString(), product.name, product.type.name]} action={ <button class="font-medium text-blue-600 dark:text-blue-500 hover:underline" onClick={() => openDialog(i)}>Edit</button>} />)}
                         </tbody>
                     </table>
                 </div>
@@ -44,8 +42,6 @@ export default function Products() {
 
 
                     <button type="button" onClick={() => dispatch(setAddNewDialogOpen(true))} class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800">Add</button>
-
-
 
                     <ul class="inline-flex -space-x-px rtl:space-x-reverse text-sm h-8">
                         <li>
@@ -76,6 +72,7 @@ export default function Products() {
             <ProductEditModal />
 
             <ProductAddModal />
+            
         </>
     )
 }

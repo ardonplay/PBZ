@@ -27,7 +27,7 @@ public class ProductController implements HttpController {
 
     private final ObjectMapper objectMapper;
 
-    private final int pageSize = 3;
+    private final int pageSize = 100;
     @Override
     public String getPath() {
         return "/api/v1/products";
@@ -39,14 +39,14 @@ public class ProductController implements HttpController {
             @Override
             protected ResponseEntity getRequest(HttpExchange exchange) {
                 if (requestParams.isEmpty()) {
-                    return new ResponseEntity(new Wrapper(Collections.singletonList(service.getAllProducts(0, pageSize)), service.getCount()));
+                    return new ResponseEntity(new Wrapper(service.getAllProducts(0, pageSize), service.getCount()));
                 }
                 if (requestParams.containsKey("count") || requestParams.containsKey("page")) {
 
                     int count = requestParams.getIntValue("count", pageSize);
                     int page = requestParams.getIntValue("page", 0);
 
-                    return new ResponseEntity(new Wrapper(Collections.singletonList(service.getAllProducts(page, count)), service.getCount()));
+                    return new ResponseEntity(new Wrapper(service.getAllProducts(page, count), service.getCount()));
 
                 }
                 if (requestParams.containsKey("id")) {
@@ -59,7 +59,6 @@ public class ProductController implements HttpController {
             protected ResponseEntity postRequest(HttpExchange exchange) {
                 try {
                     ProductDTO productDTO = objectMapper.readValue(readBody(exchange), ProductDTO.class);
-
                     System.out.println(productDTO);
                     return new ResponseEntity(service.insertProduct(productDTO));
                 } catch (IOException e) {

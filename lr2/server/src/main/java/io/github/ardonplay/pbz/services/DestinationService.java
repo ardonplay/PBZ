@@ -8,6 +8,7 @@ import org.modelmapper.ModelMapper;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -18,10 +19,11 @@ public class DestinationService {
     private final DestinationRepository repository;
 
     private final ModelMapper modelMapper;
-
+    
     public Long getCount() {
         return repository.count();
     }
+    
     public List<DestinationDTO> getAllDestinations(int pageNumber, int pageSize){
         Pageable pageable = PageRequest.of(pageNumber, pageSize);
         return repository.findAll(pageable)

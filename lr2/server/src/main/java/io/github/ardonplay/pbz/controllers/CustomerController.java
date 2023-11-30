@@ -25,7 +25,7 @@ public class CustomerController implements HttpController {
 
     private final ObjectMapper objectMapper;
 
-    private final int pageSize = 3;
+    private final int pageSize = 100;
 
     @Override
     public String getPath() {
@@ -42,23 +42,23 @@ public class CustomerController implements HttpController {
                 if (requestParams.isEmpty()) {
                     return new ResponseEntity(
                             new Wrapper(
-                                    Collections.singletonList(service.getAllCustomers(0, pageSize)),
+                                    service.getAllCustomers(0, pageSize),
                                     service.getCount()));
-                }
-                if (requestParams.containsKey("count") || requestParams.containsKey("page")) {
-
-                    int count = requestParams.getIntValue("count", pageSize);
-                    int page = requestParams.getIntValue("page", 0);
-
-                    return new ResponseEntity(new Wrapper(Collections.singletonList(
-                            service.getAllCustomers(page, count)), service.getCount()));
-
                 }
                 if (requestParams.containsKey("id")) {
                     if (requestParams.get("id").matches("^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$")) {
                         return new ResponseEntity(new Wrapper(
                                 List.of(service.getCustomerById(UUID.fromString(requestParams.get("id")))), service.getCount()));
                     }
+                }
+                if (requestParams.containsKey("count") || requestParams.containsKey("page")) {
+
+                    int count = requestParams.getIntValue("count", pageSize);
+                    int page = requestParams.getIntValue("page", 0);
+
+                    return new ResponseEntity(new Wrapper(
+                            service.getAllCustomers(page, count), service.getCount()));
+
                 }
                 throw new BadRequestException();
             }
@@ -69,6 +69,7 @@ public class CustomerController implements HttpController {
                     CustomerDTO customerDTO = objectMapper.readValue(readBody(exchange), CustomerDTO.class);
                     return new ResponseEntity(service.insertCustomer(customerDTO));
                 } catch (IOException e) {
+                    log.error(e.getLocalizedMessage());
                     throw new NetworkException();
                 }
             }

@@ -10,6 +10,6 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 public class Wrapper {
-    private List<Object> items;
+    private List<?> items;
     private Long totalCount;
 }
