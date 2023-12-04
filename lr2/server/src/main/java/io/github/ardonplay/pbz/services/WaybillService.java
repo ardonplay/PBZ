@@ -1,5 +1,8 @@
 package io.github.ardonplay.pbz.services;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.ObjectWriter;
 import io.github.ardonplay.pbz.model.dto.DestinationDTO;
 import io.github.ardonplay.pbz.model.dto.WaybillDTO;
 import io.github.ardonplay.pbz.model.dto.WaybillProductDTO;
@@ -20,16 +23,13 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @Service
 @AllArgsConstructor
 public class WaybillService {
     private final WaybillRepository repository;
-    private final CustomerRepository customerRepository;
-    private final DestinationRepository destinationRepository;
-    private final WaybillProductRepository productRepository;
+    private final ObjectMapper mapper;
     private final ModelMapper modelMapper;
 
     public Long getCount() {
@@ -55,64 +55,26 @@ public class WaybillService {
         return modelMapper.map(repository.findById(id).orElseThrow(NoSuchElementException::new), WaybillDTO.class);
     }
 
-    public WaybillDTO insertWaybill(WaybillDTO dto) throws DataIntegrityViolationException {
-        Waybill waybill = new Waybill();
-        waybill.setDate(dto.getDate());
-        Customer customer = customerRepository.findById(dto.getCustomerID()).orElseThrow(NoSuchElementException::new);
-
-        Destination destination = destinationRepository.findById(dto.getDestination().getId()).orElseThrow(NoSuchElementException::new);
-
-        waybill.setDestination(destination);
-        waybill.setCustomer(customer);
-        Set<WaybillProduct> products = dto.getWaybillProducts().stream().map(waybillProduct -> modelMapper.map(waybillProduct, WaybillProduct.class)).collect(Collectors.toSet());
-
-        for(var product: products){
-            product.setWaybill(waybill);
-        }
-
-        waybill.setWaybillProducts(products);
-        waybill = repository.save(waybill);
-        return modelMapper.map(waybill, WaybillDTO.class);
+    public WaybillDTO insertWaybill(WaybillDTO dto) throws DataIntegrityViolationException, JsonProcessingException {
+        int result = repository.addNewWaybill(dto.getCustomerID(), dto.getDate(), dto.getDestination().getId(), convertToSimpleWaybillProductDTO(dto));
+        return modelMapper.map(repository.findById(result).orElseThrow(NoSuchElementException::new), WaybillDTO.class);
     }
 
-
-    @Transactional
-    public WaybillDTO updateWaybill(WaybillDTO dto) {
-
-        Waybill waybill = repository.findById(dto.getId()).orElseThrow(NoSuchElementException::new);
-
-        Customer customer = customerRepository.findById(dto.getCustomerID()).orElseThrow(NoSuchElementException::new);
-
-        Destination destination = destinationRepository.findById(dto.getDestination().getId()).orElseThrow(NoSuchElementException::new);
-
-        waybill.setDestination(destination);
-        waybill.setCustomer(customer);
-        List<WaybillProduct> products = dto.getWaybillProducts().stream().map(waybillProduct -> modelMapper.map(waybillProduct, WaybillProduct.class)).toList();
-
-        for(var product: products){
-            product.setWaybill(waybill);
-        }
-
-        Set<WaybillProduct> waybillProducts = waybill.getWaybillProducts();
-        List<WaybillProduct> waybillProductsToDelete = new ArrayList<>();
-
-        for(var product: waybillProducts){
-            if(products.contains(product)){
-                waybillProducts.add(product);
-            }
-            else {
-                waybillProductsToDelete.add(product);
-            }
-        }
-        waybillProducts.addAll(products);
-        waybillProductsToDelete.forEach(waybillProducts::remove);
-        productRepository.deleteAll(waybillProductsToDelete);
-
-        waybill = repository.save(waybill);
-        return modelMapper.map(waybill, WaybillDTO.class);
+    public WaybillDTO updateWaybill(WaybillDTO dto) throws JsonProcessingException {
+        repository.updateWaybill(dto.getId(), dto.getCustomerID(), dto.getDate(), dto.getDestination().getId(), convertToSimpleWaybillProductDTO(dto));
+        return dto;
     }
 
     public void deleteWaybill(WaybillDTO dto) {
-        repository.deleteById(dto.getId());
+        repository.deleteWaybill(dto.getId());
+    }
+
+    private String convertToSimpleWaybillProductDTO(WaybillDTO dto) throws JsonProcessingException {
+        ObjectWriter ow = mapper.writer().withDefaultPrettyPrinter();
+        dto.getWaybillProducts().forEach(waybillProductDTO -> {
+            waybillProductDTO.setId(waybillProductDTO.getProduct().getId());
+            waybillProductDTO.setProduct(null);
+        });
+        return ow.writeValueAsString(dto.getWaybillProducts());
     }
 }

@@ -49,21 +49,17 @@ public class ProductService {
     }
 
     public ProductDTO insertProduct(ProductDTO dto) throws DataIntegrityViolationException {
-        Product product = modelMapper.map(dto, Product.class);
-        System.out.println(product.getProductType());
-        product = repository.save(product);
+        Product product = repository.findById(repository.addProduct(dto.getName(), dto.getType().getName())).orElseThrow(NoSuchElementException::new);
         return modelMapper.map(product, ProductDTO.class);
     }
 
     public ProductDTO updateProduct(ProductDTO dto) {
-        Product product = repository.findById(dto.getId()).orElseThrow(NoSuchElementException::new);
-        modelMapper.map(dto, product);
-        product = repository.save(product);
-        return modelMapper.map(product, ProductDTO.class);
+        repository.updateProduct(dto.getId(), dto.getName(), dto.getType().getName());
+        return dto;
     }
 
     public void deleteProduct(ProductDTO dto) {
-        repository.deleteById(dto.getId());
+        repository.deleteProduct(dto.getId());
     }
 }
 

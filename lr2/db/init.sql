@@ -63,63 +63,6 @@ CREATE TABLE
     );
 
 
-CREATE VIEW max_waybills_per_date AS
-WITH WaybilPrices AS (
-    SELECT
-        wp.waybil_id AS id,
-        wb.date AS waybill_date,
-        wb.customer_id AS customer_id,
-        SUM(wp.price) AS total_price
-    FROM
-        waybil_products wp
-    JOIN
-        waybills wb ON wp.waybil_id = wb.id
-    GROUP BY
-        wp.waybil_id, wb.date, wb.customer_id
-),
-MaxTotalPricePerDate AS (
-    SELECT
-        wp.waybill_date,
-        MAX(wp.total_price) AS max_total_price
-    FROM
-        WaybilPrices wp
-    GROUP BY
-        wp.waybill_date
-)SELECT
-    wp.id,
-    wp.customer_id,
-    wp.waybill_date,
-    wp.total_price
-FROM
-    WaybilPrices wp
-JOIN
-    MaxTotalPricePerDate mtp ON wp.waybill_date = mtp.waybill_date AND wp.total_price = mtp.max_total_price;
-
-
-
-
-CREATE OR REPLACE FUNCTION find_price_by_product_id(product_id integer, start_date date, end_date date) 
-RETURNS TABLE (
-    "Название товара" varchar,
-    "Дата" date,
-    "Цена за единицу" numeric
-) AS $$
-BEGIN
-    RETURN QUERY
-    SELECT p.name AS "Название товара", w.date AS "Дата", 
-           SUM(wp.price) / SUM(wp.quantity) AS "Цена за единицу"
-    FROM waybil_products wp
-    JOIN waybills w ON wp.waybil_id = w.id
-    JOIN products p ON wp.product_id = p.id
-    WHERE p.id = find_price_by_product_id.product_id
-    AND w.date BETWEEN find_price_by_product_id.start_date AND find_price_by_product_id.end_date
-    GROUP BY p.name, w.date, wp.waybil_id
-    ORDER BY w.date, w.date DESC;
-END;
-$$ LANGUAGE plpgsql;
-
-
-
 INSERT INTO "product_type" ("name") VALUES
 ('INDUSTRIAL'),
 ('HOUSEHOLD'),
@@ -227,7 +170,8 @@ FOR EACH ROW EXECUTE FUNCTION logger();
 
 CREATE OR REPLACE PROCEDURE add_product(
     IN product_name VARCHAR,
-    IN product_type_name VARCHAR
+    IN product_type_name VARCHAR,
+    OUT product_id INTEGER
 )
 LANGUAGE plpgsql
 AS $$
@@ -238,14 +182,16 @@ BEGIN
     INSERT INTO product_type(name)
     VALUES (product_type_name)
     ON CONFLICT (name) DO NOTHING;
+    
 
     -- Получить или обновить идентификатор существующего типа продукта
     SELECT id INTO product_type_id FROM product_type WHERE name = product_type_name;
 
     -- Вставить новый продукт
     INSERT INTO products(name, type)
-    VALUES (product_name, product_type_id);
-    
+    VALUES (product_name, product_type_id)
+    RETURNING id INTO product_id;
+
 EXCEPTION
     WHEN OTHERS THEN
         RAISE;
@@ -254,17 +200,16 @@ $$;
 
 
 CREATE OR REPLACE PROCEDURE delete_product(
-    IN product_name VARCHAR
+    IN product_id INTEGER
 )
 LANGUAGE plpgsql
 AS $$
 BEGIN
     -- Удалить продукт по имени
     DELETE FROM products
-    WHERE name = product_name;
+    WHERE id = product_id;
 
 EXCEPTION
-    -- В случае ошибки, PostgreSQL автоматически откатит транзакцию
     WHEN OTHERS THEN
         RAISE;
 END;
@@ -290,7 +235,7 @@ BEGIN
     -- Обновить информацию о продукте
     UPDATE products
     SET name = new_product_name, type = new_product_type_id
-    WHERE id = old_product_id;
+    WHERE id = product_id;
 
 EXCEPTION
     WHEN OTHERS THEN
@@ -305,14 +250,14 @@ CREATE OR REPLACE PROCEDURE add_new_waybill(
     IN customer_id UUID,
     IN date_param DATE,
     IN destination_id INTEGER,
-    IN products_data JSONB
+    IN products_data VARCHAR,
+    OUT result_waybill_id INTEGER
 )
 LANGUAGE plpgsql
 AS $$
 DECLARE
     waybill_id INTEGER;
     product_info JSONB;
-    product_id INTEGER;
 BEGIN
     -- Вставить новую накладную
     INSERT INTO waybills(customer_id, date, destination)
@@ -320,15 +265,14 @@ BEGIN
     RETURNING id INTO waybill_id;
 
     -- Вставить продукты в накладную
-    FOR product_info IN SELECT * FROM jsonb_array_elements(products_data)
+    FOR product_info IN SELECT * FROM jsonb_array_elements(products_data::jsonb)
     LOOP
-        -- Получить или обновить идентификатор существующего продукта
-        SELECT id INTO product_id FROM products WHERE name = product_info->>'name';
-
-        -- Вставить продукт в накладную
         INSERT INTO waybil_products(product_id, waybil_id, quantity, price)
-        VALUES (product_id, waybill_id, (product_info->>'quantity')::INTEGER, (product_info->>'price')::DECIMAL(18,2));
+        VALUES ((product_info->>'id')::INTEGER, waybill_id, (product_info->>'count')::INTEGER, (product_info->>'price')::DECIMAL(18,2));
     END LOOP;
+
+    result_waybill_id := waybill_id;
+
 EXCEPTION
     -- В случае ошибки откатить транзакцию
     WHEN OTHERS THEN
@@ -338,18 +282,19 @@ END;
 $$;
 
 
+
+
 CREATE OR REPLACE PROCEDURE update_waybill(
     IN waybill_id INTEGER,
     IN waybill_customer_id UUID,
     IN date_param DATE,
     IN destination_id INTEGER,
-    IN products_data JSONB
+    IN products_data VARCHAR
 )
 LANGUAGE plpgsql
 AS $$
 DECLARE
     product_info JSONB;
-    product_id INTEGER;
 BEGIN
     -- Обновить информацию о накладной
     UPDATE waybills
@@ -360,17 +305,14 @@ BEGIN
     DELETE FROM waybil_products WHERE waybil_id = waybill_id;
 
     -- Вставить новые продукты в накладную
-    FOR product_info IN SELECT * FROM jsonb_array_elements(products_data)
+    FOR product_info IN SELECT * FROM jsonb_array_elements(products_data::jsonb)
     LOOP
-        -- Получить или обновить идентификатор существующего продукта
-        SELECT id INTO product_id FROM products WHERE name = product_info->>'name';
-
-        -- Вставить продукт в накладную
         INSERT INTO waybil_products(product_id, waybil_id, quantity, price)
-        VALUES (product_id, waybill_id, (product_info->>'quantity')::INTEGER, (product_info->>'price')::DECIMAL(18,2));
+        VALUES ((product_info->>'id')::INTEGER, waybill_id, (product_info->>'count')::INTEGER, (product_info->>'price')::DECIMAL(18,2));
     END LOOP;
 END;
 $$;
+
 
 CREATE OR REPLACE PROCEDURE delete_waybill(
     IN waybill_id INTEGER
@@ -391,4 +333,72 @@ $$;
 
 
 
+CREATE VIEW max_waybills_per_date AS
+WITH WaybilPrices AS (
+    SELECT
+        wp.waybil_id AS id,
+        wb.date AS waybill_date,
+        c.name AS customer_name, -- изменено на name из таблицы customers
+        SUM(wp.price) AS total_price
+    FROM
+        waybil_products wp
+    JOIN
+        waybills wb ON wp.waybil_id = wb.id
+    JOIN
+        customers c ON wb.customer_id = c.id -- добавлено соединение с таблицей customers
+    GROUP BY
+        wp.waybil_id, wb.date, c.name
+),
+MaxTotalPricePerDate AS (
+    SELECT
+        wp.waybill_date,
+        MAX(wp.total_price) AS max_total_price
+    FROM
+        WaybilPrices wp
+    GROUP BY
+        wp.waybill_date
+)SELECT
+    wp.id,
+    wp.customer_name, -- изменено на customer_name
+    wp.waybill_date,
+    wp.total_price
+FROM
+    WaybilPrices wp
+JOIN
+    MaxTotalPricePerDate mtp ON wp.waybill_date = mtp.waybill_date AND wp.total_price = mtp.max_total_price;
 
+
+
+
+
+CREATE OR REPLACE FUNCTION find_price_by_product_id(
+    product_id integer, 
+    start_date date, 
+    end_date date
+) 
+RETURNS TABLE (
+    "name" varchar,
+    "date" date,
+    "price" numeric
+) AS $$
+BEGIN
+    RETURN QUERY
+    SELECT 
+        p.name AS "name", 
+        w.date::date AS "date", 
+        SUM(wp.price) / SUM(wp.quantity) AS "price"
+    FROM 
+        waybil_products wp
+    JOIN 
+        waybills w ON wp.waybil_id = w.id
+    JOIN 
+        products p ON wp.product_id = p.id
+    WHERE 
+        p.id = find_price_by_product_id.product_id
+        AND w.date BETWEEN find_price_by_product_id.start_date AND find_price_by_product_id.end_date
+    GROUP BY 
+        p.name, w.date::date -- Приводим тип к date
+    ORDER BY 
+        w.date::date; -- Приводим тип к date
+END;
+$$ LANGUAGE plpgsql;

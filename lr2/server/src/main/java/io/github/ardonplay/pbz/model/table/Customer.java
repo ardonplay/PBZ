@@ -3,7 +3,6 @@ package io.github.ardonplay.pbz.model.table;
 import io.github.ardonplay.pbz.model.enums.PersonType;
 import jakarta.persistence.*;
 import lombok.*;
-import org.hibernate.annotations.ColumnTransformer;
 
 import java.util.List;
 import java.util.UUID;
