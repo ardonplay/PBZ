@@ -3,12 +3,16 @@ import productReducer from './productSlice';
 import waybillReducer from './waybillsSlice';
 import customerReducer from './customerSlice'
 import destinationReducer from "./destinationSlice"
+import maxWaybillReducer from './maxWaybillSlice'
+import priceByIdReducer from "./findPriceSlice"
 const store = configureStore({
   reducer: {
     products: productReducer,
     waybills: waybillReducer,
     customers: customerReducer,
-    destinations: destinationReducer
+    destinations: destinationReducer,
+    maxWaybill: maxWaybillReducer,
+    priceById: priceByIdReducer
   },
 });
 

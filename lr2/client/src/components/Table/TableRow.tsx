@@ -1,5 +1,5 @@
-export default function TableRow(props: {id: number,  data: string[], action: any }) {
-    
+export default function TableRow(props: { id: number, data: string[], action?: any }) {
+
 
     return (
         <>
@@ -7,9 +7,10 @@ export default function TableRow(props: {id: number,  data: string[], action: an
                 {props.data.map(col => <td class="px-6 py-4">
                     {col}
                 </td>)}
-               <td class="px-6 py-4">
-                   {props.action}
-                </td>
+                {props.action ? <td class="px-6 py-4">
+                    {props.action}
+                </td> : null}
+
             </tr>
         </>
 

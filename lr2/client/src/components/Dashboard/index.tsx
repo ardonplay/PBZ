@@ -4,6 +4,7 @@ import Logo from "../../assets/logo";
 import WaybillsLogo from "../../assets/waybillsLogo";
 import DestinationsLogo from "../../assets/destinationsLogo";
 import DashboardComponent from "./DashboardComponent";
+import UtilsLogo from "@/assets/utilsLogo";
 
 export default function Dashboard() {
     return (
@@ -17,6 +18,7 @@ export default function Dashboard() {
                 <DashboardComponent logo={ProductsLogo()} title="Products" link="/products"/>
                 <DashboardComponent logo={WaybillsLogo()} title="Waybills" link="/waybills"/>
                 <DashboardComponent logo={DestinationsLogo()} title="Destinations" link="/destinations"/>
+                <DashboardComponent logo={UtilsLogo()} title="Utils" link="/utils"/>
             </ul>
             <div class="flex mt-auto text-white">
                 2023 V. Moshchuk

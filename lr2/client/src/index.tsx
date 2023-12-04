@@ -8,9 +8,12 @@ import Dashboard from './components/Dashboard/index.js';
 import Products from './pages/Products/index.js';
 import Customers from './pages/Customers/index.js';
 import Waybills from './pages/Waybills/index.js';
+import Utils from './pages/Utils/index.js'
 import Destinations from './pages/Destinations/index.js';
-import { Provider, useSelector } from 'react-redux';
+import { Provider } from 'react-redux';
 import store from './slices/store';
+import MaxWaybillsPerDate from './pages/Utils/MaxWaybillsPerDate.js';
+import FindPriceByProductId from './pages/Utils/FindPriceByProductId.js';
 
 const App = () => {
 	return (
@@ -24,6 +27,9 @@ const App = () => {
 						<Route path='/customers' component={Customers} />
 						<Route path='/waybills' component={Waybills} />
 						<Route path='/destinations' component={Destinations} />
+						<Route path='/utils' component={Utils} />
+						<Route path="/utils/max_waybills_per_date" component={MaxWaybillsPerDate} />
+						<Route path="/utils/find_price_by_product_id" component={FindPriceByProductId} />
 						<Route default component={NotFound} />
 					</Router>
 				</div>
