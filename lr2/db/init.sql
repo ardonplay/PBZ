@@ -402,3 +402,29 @@ BEGIN
         w.date::date; -- Приводим тип к date
 END;
 $$ LANGUAGE plpgsql;
+
+
+CREATE OR REPLACE FUNCTION get_waybills_with_product(product_id_param integer)
+RETURNS TABLE (
+    waybill_id integer,
+    customer_id uuid,
+    waybill_date date,
+    destination_id integer
+) AS $$
+BEGIN
+    RETURN QUERY
+    SELECT
+        w.id AS waybill_id,
+        w.customer_id,
+        w.date AS waybill_date,
+        w.destination AS destination_id
+    FROM
+        waybills w
+    INNER JOIN
+        waybil_products wp ON w.id = wp.waybil_id
+    WHERE
+        wp.product_id = product_id_param;
+END;
+$$ LANGUAGE plpgsql;
+
+

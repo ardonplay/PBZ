@@ -165,6 +165,8 @@ const addNewWaybill = createAsyncThunk(
     }
 )
 
+
+
 export const { setSelectedRow, setEditDialogOpen, setAddNewDialogOpen, setWaybills, setNewProductRow, setAddProductToWaybillDialogOpen, addNewProductToWaybill, deleteProductFromWaybill } = waybillSlice.actions
 
 export { updateWaybill, deleteWaybill, getAllWaybills, addNewWaybill, getFullWaybill }

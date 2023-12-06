@@ -2,6 +2,7 @@ package io.github.ardonplay.pbz.controllers;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sun.net.httpserver.HttpExchange;
+import io.github.ardonplay.pbz.repository.table.ViewRepository;
 import io.github.ardonplay.pbz.server.utils.controller.HttpController;
 import io.github.ardonplay.pbz.server.utils.AbstractHttpHandler;
 import io.github.ardonplay.pbz.server.exceptions.BadRequestException;
@@ -9,6 +10,7 @@ import io.github.ardonplay.pbz.server.exceptions.NetworkException;
 import io.github.ardonplay.pbz.server.utils.models.Wrapper;
 import io.github.ardonplay.pbz.model.dto.WaybillDTO;
 import io.github.ardonplay.pbz.server.utils.models.ResponseEntity;
+import io.github.ardonplay.pbz.services.UtilService;
 import io.github.ardonplay.pbz.services.WaybillService;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Controller;
@@ -23,6 +25,8 @@ public class WaybillController implements HttpController {
     private final ObjectMapper objectMapper;
 
     private final WaybillService service;
+
+    private final UtilService utilService;
     private final int pageSize = 100;
 
     @Override
@@ -50,6 +54,9 @@ public class WaybillController implements HttpController {
 
                 } else if (requestParams.containsKey("id")) {
                     return new ResponseEntity(service.getWaybillById(requestParams.getIntValue("id")));
+                }
+                else if(requestParams.containsKey("product_id")){
+                    return new ResponseEntity(utilService.getWaybillsByProduct(requestParams.getIntValue("product_id")));
                 }
                 throw new BadRequestException();
 

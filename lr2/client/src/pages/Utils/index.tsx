@@ -14,6 +14,9 @@ export default function UtilsPage(){
             <Link href="/utils/find_price_by_product_id" class="flex items-center p-2 text-gray-900 rounded-lg dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700 group">
                 <span class="flex-1 ms-3 whitespace-nowrap">Find price by product id</span>
             </Link>
+            <Link href="/utils/find_waybills_by_product" class="flex items-center p-2 text-gray-900 rounded-lg dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700 group">
+                <span class="flex-1 ms-3 whitespace-nowrap">Find waybills by product</span>
+            </Link>
         </div>
     )
 }

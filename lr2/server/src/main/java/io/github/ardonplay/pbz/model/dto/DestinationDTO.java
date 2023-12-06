@@ -6,6 +6,7 @@ import lombok.*;
 @AllArgsConstructor
 @RequiredArgsConstructor
 @NoArgsConstructor
+@Builder
 public class DestinationDTO {
     private Integer id;
 

@@ -1,12 +1,16 @@
 package io.github.ardonplay.pbz.repository.table;
 
+import io.github.ardonplay.pbz.model.table.Product;
 import io.github.ardonplay.pbz.model.table.Waybill;
+import io.github.ardonplay.pbz.model.table.WaybillProduct;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.query.Procedure;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.Date;
+import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 @Repository
 public interface WaybillRepository extends JpaRepository<Waybill, Integer> {
@@ -29,4 +33,6 @@ public interface WaybillRepository extends JpaRepository<Waybill, Integer> {
 
     @Procedure(procedureName = "delete_waybill")
     void deleteWaybill(@Param("waybill_id") Integer waybillId);
+
+
 }

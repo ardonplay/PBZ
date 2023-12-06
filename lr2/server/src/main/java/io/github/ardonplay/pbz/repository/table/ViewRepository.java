@@ -20,4 +20,9 @@ public interface ViewRepository extends JpaRepository<MaxWaybillPerDateView, Int
     List<Object[]> findPriceByProductId(@Param("product_id") Integer productId, @Param("start_date") Date startDate, @Param("end_date") Date endDate);
 
 
+    @Query(
+            nativeQuery = true,
+            value = "SELECT * FROM get_waybills_with_product(:product_id)"
+    )
+    List<Object[]> getWaybillWithProduct(@Param("product_id") Integer productId);
 }

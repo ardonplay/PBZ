@@ -5,6 +5,7 @@ import customerReducer from './customerSlice'
 import destinationReducer from "./destinationSlice"
 import maxWaybillReducer from './maxWaybillSlice'
 import priceByIdReducer from "./findPriceSlice"
+import priceByProductReducer from "./findByProductSlice"
 const store = configureStore({
   reducer: {
     products: productReducer,
@@ -12,7 +13,8 @@ const store = configureStore({
     customers: customerReducer,
     destinations: destinationReducer,
     maxWaybill: maxWaybillReducer,
-    priceById: priceByIdReducer
+    priceById: priceByIdReducer,
+    priceByProduct: priceByProductReducer
   },
 });
 

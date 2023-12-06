@@ -14,6 +14,7 @@ import { Provider } from 'react-redux';
 import store from './slices/store';
 import MaxWaybillsPerDate from './pages/Utils/MaxWaybillsPerDate.js';
 import FindPriceByProductId from './pages/Utils/FindPriceByProductId.js';
+import FindWaybillsByProductId from './pages/Utils/FindWaybillsByProduct.js';
 
 const App = () => {
 	return (
@@ -30,6 +31,7 @@ const App = () => {
 						<Route path='/utils' component={Utils} />
 						<Route path="/utils/max_waybills_per_date" component={MaxWaybillsPerDate} />
 						<Route path="/utils/find_price_by_product_id" component={FindPriceByProductId} />
+						<Route path="/utils/find_waybills_by_product" component={FindWaybillsByProductId} />
 						<Route default component={NotFound} />
 					</Router>
 				</div>
